@@ -1,0 +1,103 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.kourui</groupId>
+	<artifactId>Netty-Rpc-Service-System</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+		<version.slf4j>1.7.10</version.slf4j>
+		<version.spring>4.1.5.RELEASE</version.spring>
+		<version.netty>4.1.16.Final</version.netty>
+		<version.cglib>3.1</version.cglib>
+		<version.curator>2.12.0</version.curator>
+		<version.objenesis>2.1</version.objenesis>
+		<version.fastjson>1.2.47</version.fastjson>
+		<version.commons-lang>3.3.2</version.commons-lang>
+		<version.commons-collections>4.0</version.commons-collections>
+		<spring.boot.version>2.1.6</spring.boot.version>
+	</properties>
+
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-dependencies</artifactId>
+				<type>pom</type>
+				<version>2.1.1.RELEASE</version>
+				<scope>import</scope>
+			</dependency>
+			<!-- SLF4J-log4j12 -->
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${version.slf4j}</version>
+			</dependency>
+			<!-- protostuff -->
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-core</artifactId>
+				<version>1.5.9</version>
+			</dependency>
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-runtime</artifactId>
+				<version>1.5.9</version>
+			</dependency>
+			<dependency>
+				<groupId>io.protostuff</groupId>
+				<artifactId>protostuff-api</artifactId>
+				<version>1.5.9</version>
+			</dependency>
+
+
+			<!-- Netty -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${version.netty}</version>
+			</dependency>
+
+
+
+			<!-- Fastjson -->
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${version.fastjson}</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+
+
+	<modules>
+		<module>HttpServer</module>
+		<module>RpcSystem</module>
+		<module>CustomerService</module>
+		<module>LoginAuthService</module>
+		<module>RegistryCenter</module>
+		<module>Test_RpcSystem</module>
+	</modules>
+</project>
