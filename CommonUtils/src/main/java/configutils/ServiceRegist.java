@@ -1,10 +1,10 @@
 package configutils;
 
-public class ServiceConfig {
+public class ServiceRegist {
 	private String servicename;
 	private String addr;
 	
-	public ServiceConfig(String servicename, String addr) {
+	public ServiceRegist(String servicename, String addr) {
 		super();
 		this.servicename = servicename;
 		this.addr = addr;

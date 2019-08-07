@@ -9,6 +9,7 @@ import MessageUtils.RpcRequest;
 import MessageUtils.RpcResponse;
 import configutils.NormalConfig;
 import configutils.ServiceConfig;
+import configutils.ServiceRegist;
 import configutils.TokenConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -32,7 +33,7 @@ public class RegistryDecoder extends ByteToMessageDecoder{
 			}else if(Header.REGISTRY_TOKENCONFIG == headtype){
 				cls = TokenConfig.class;
 			}else{
-				cls = ServiceConfig.class;
+				cls = ServiceRegist.class;
 			}
 			
 			//Class cls = Header.REGISTRY_NORMALCONFIG == headtype ? NormalConfig.class : TokenConfig.class;

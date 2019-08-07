@@ -24,12 +24,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 @Component
 public class RegistryServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RegistryServer.class);
+	
+	@Value("${registry.serverip}")
+	private String ip;
 
 	@Value("${registry.serverport}")
     private int port;
 
-    
-    private NormalConfig normalConfig;
+
 
     /**
      * Netty 的连接线程池
@@ -43,23 +45,17 @@ public class RegistryServer {
             new NamedThreadFactory("Rpc-netty-server-worker", true));
 
     /**
-     * 用户线程池，用于处理实际rpc业务
+     * 用户线程池，用于处理实际业务
      */
     private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2,
             Runtime.getRuntime().availableProcessors() * 2, 60L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(1000), new NamedThreadFactory());
-
-    
-
-
-    
 
     /**
      * 启动 Netty 服务器服务端
      */
     @PostConstruct
     private void doRunServer() {
-        new Thread(() -> {
             try {
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = initServerBootstrap(bossGroup, workerGroup);
@@ -75,7 +71,7 @@ public class RegistryServer {
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             }
-        }, "registry-server-thread").start();
+
     }
 
     /**

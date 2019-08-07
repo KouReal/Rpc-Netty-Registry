@@ -5,14 +5,14 @@ import java.util.Date;
 public class Token {
 	//createtime 创建时间（用于定期销毁)
 	private Date createtime;
-	//servicename 认证范围
-	private String servicename;
+	//servicename leadername
+	private String leadername;
 	//tid uuid号码
 	private String tid;
-	public Token(Date createtime, String servicename, String tid) {
+	public Token(Date createtime, String leadername, String tid) {
 		super();
 		this.createtime = createtime;
-		this.servicename = servicename;
+		this.setLeadername(leadername);
 		this.tid = tid;
 	}
 	public Date getCreatetime() {
@@ -21,16 +21,17 @@ public class Token {
 	public void setCreatetime(Date createtime) {
 		this.createtime = createtime;
 	}
-	public String getServicename() {
-		return servicename;
-	}
-	public void setServicename(String servicename) {
-		this.servicename = servicename;
-	}
+	
 	public String getTid() {
 		return tid;
 	}
 	public void setTid(String tid) {
 		this.tid = tid;
+	}
+	public String getLeadername() {
+		return leadername;
+	}
+	public void setLeadername(String leadername) {
+		this.leadername = leadername;
 	}
 }

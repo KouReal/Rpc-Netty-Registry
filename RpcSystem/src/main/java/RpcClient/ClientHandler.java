@@ -21,6 +21,7 @@ import RpcTrans.RpcFutureCache;
 public class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
+    
 
     public ClientHandler() {
 

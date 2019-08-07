@@ -8,11 +8,20 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
 import RegistryCodec.RegistryDecoder;
 import RegistryCodec.RegistryEncoder;
 
 public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
-    private static ChannelHandler clientHandler = new ClientHandler();
+	@Autowired
+	private ConfigFuture configFuture;
+	
+	@Autowired
+	private TokenTask tokenTask;
+	
+    private ChannelHandler clientHandler = new ClientHandler(configFuture,tokenTask);
     private ConnectionWatchDog connectionWatchDog;
 
     public ClientChannelInitializer(ReConnectionListener reConnectionListener) {

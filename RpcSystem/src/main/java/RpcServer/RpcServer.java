@@ -5,8 +5,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import configutils.NormalConfig;
 import io.netty.bootstrap.ServerBootstrap;
@@ -17,19 +22,20 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import rpcutils.NamedThreadFactory;
 
+@Component
 public class RpcServer{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
 
+    @Value("${rpcserver.ip}")
     private String ip;
 
+    @Value("{rpcserver.port}")
     private int port;
 
-    private String addr;
-    
+    @Autowired
     private NormalConfig normalConfig;
 
-    private ServiceHolder serviceHolder;
     /**
      * Netty 的连接线程池
      */
@@ -48,25 +54,13 @@ public class RpcServer{
             Runtime.getRuntime().availableProcessors() * 2, 60L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(1000), new NamedThreadFactory());
 
-    
-    public RpcServer(String ip, int port, NormalConfig normalConfig, ServiceHolder serviceHolder) {
-        this.ip = ip;
-        this.port = port;
-        this.addr = this.ip + ":" + this.port;
-        this.normalConfig = normalConfig;
-        this.serviceHolder = serviceHolder;
-        //启动server
-        this.doRunServer();
-    }
-
-    
-
     /**
      * 启动 Netty RPC服务器服务端
      */
+    @PostConstruct
     private void doRunServer() {
-        new Thread(() -> {
-            try {
+       
+           try {
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = RpcServer.this.initServerBootstrap(bossGroup, workerGroup);
                 //绑定对应ip和端口，同步等待成功
@@ -81,7 +75,7 @@ public class RpcServer{
                 workerGroup.shutdownGracefully();
                 bossGroup.shutdownGracefully();
             }
-        }, "rpc-server-thread").start();
+
     }
 
     /**

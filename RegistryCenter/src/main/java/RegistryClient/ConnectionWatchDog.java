@@ -33,7 +33,7 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
         //若是心跳响应则直接返回，否则交给下一handler处理
         Header header = message.getHeader();
         if (Header.RPC_RESPONSE == header.getType()) {
-            channelHandlerContext.fireChannelRead(message.getBody());
+            channelHandlerContext.fireChannelRead(message);
         }
     }
 
@@ -61,7 +61,7 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
             if(idleStateEvent.state()==IdleState.WRITER_IDLE){
-            	RpcMessage hb = new RpcMessage(new Header(0, Header.HEART_BEAT_REQUEST), null);
+            	RegistryMessage hb = new RegistryMessage(new Header(0, Header.HEART_BEAT_REQUEST), null);
             	LOGGER.debug("send heartbeat with channel:{}, in eventloop:{}",ctx.channel(),ctx.channel().eventLoop());
             	ctx.writeAndFlush(hb);
             }
