@@ -8,13 +8,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 
-@Target({ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 public @interface AuthToken {
-    /**
-     * 服务接口类
-     */
-    String value();
+    
 
 }

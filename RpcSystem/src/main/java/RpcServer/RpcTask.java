@@ -1,34 +1,45 @@
 package RpcServer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSONObject;
+
 import MessageUtils.RpcRequest;
 import MessageUtils.RpcResponse;
+import exceptionutils.RpcErrorException;
 import io.netty.channel.ChannelHandlerContext;
+import reflectionutils.ServiceProxy;
+import springutils.SpringContextStatic;
 
 public class RpcTask implements Runnable {
+	private static Logger logger = LoggerFactory.getLogger(RpcTask.class);
+	
 
     private ChannelHandlerContext ctx;
     private RpcRequest request;
+    
+    private ServiceProxy serviceProxy;
 
     public RpcTask(ChannelHandlerContext ctx, RpcRequest request) {
         this.ctx = ctx;
         this.request = request;
+        this.serviceProxy = (ServiceProxy) SpringContextStatic.getBean("serviceProxy");
     }
 
     @Override
     public void run() {
         // 创建并初始化 RPC 响应对象
         RpcResponse response = new RpcResponse();
-        response.setRequestId(request.getRequestId());
-        try {
+        response.setRequestid(request.getRequestId());
+        logger.info("收到rpcrequest:{}",request);
             //调用服务，获取服务结果
-            Object serviceResult = this.handle(request);
+            String serviceResult = this.handle(request);
             //结果添加到响应
-            response.setServiceResult(serviceResult);
-        } catch (Exception e) {
-            response.setErrorMsg(String.format("errorCode: %s, state: %s, cause: %s", RpcStateCode.FAIL.getCode(),
-                    RpcStateCode.FAIL.getValue(), e.getMessage()));
-        }
+            response.setContent(serviceResult);
+      
         // 写入 RPC 响应对象
+            logger.info("得到rpcresponse:{}",response);
         ctx.writeAndFlush(response);
     }
 
@@ -39,48 +50,29 @@ public class RpcTask implements Runnable {
      * @return
      * @throws Exception
      */
-    private Object handle(RpcRequest request) throws Exception {
+    private String handle(RpcRequest request) {
         // 获取服务实例对象
-        String serviceName = request.getInterfaceName();
-        Object serviceBean = this.getServiceBean(serviceName);
+        String serviceName = request.getServicename();
+       
         //利用反射调用服务
         String methodName = request.getMethodName();
-        Class<?>[] parameterTypes = request.getParameterTypes();
+        String paramjsonstr = request.getParamjsonstr();
+        JSONObject params = JSONObject.parseObject(paramjsonstr);
+        
+        Object result;
+		try {
+			result = serviceProxy.callservice(serviceName, methodName, params);
+		} catch (RpcErrorException e) {
+			// TODO Auto-generated catch block
+			logger.error("调用服务：{},方法：{}出错，错误信息：{}",serviceName,methodName,e.getMessage());
+			e.printStackTrace();
+			return null;
+		}
+        /*Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParameters();
         return this.invokeByReflect(serviceBean, methodName, parameterTypes, parameters);
+    */
+        return (String)result;
     }
 
-    /**
-     * 获取服务实例对象
-     *
-     * @param serviceName service接口名称
-     * @return
-     */
-    private Object getServiceBean(String serviceName) {
-        Object serviceBean = RpcServer.serviceInstanceMap.get(serviceName);
-        if (serviceBean == null) {
-            throw new RuntimeException(String.format("can not find service bean by key: %s", serviceName));
-        }
-        return serviceBean;
-    }
-
-
-    /**
-     * 利用反射机制调用服务，并返回结果(可以选择用JDK自带的反射机制，或者cglib提供的反射方法)
-     *
-     * @param serviceBean    service实例对象
-     * @param methodName     调用方法名
-     * @param parameterTypes 参数类型
-     * @param parameters     参数值
-     * @return
-     * @throws InvocationTargetException
-     */
-    private Object invokeByReflect(Object serviceBean, String methodName, Class<?>[] parameterTypes, Object[] parameters) throws InvocationTargetException {
-        // 获取反射调用所需的参数
-        Class<?> serviceClass = serviceBean.getClass();
-        // 使用 CGLib 执行反射调用
-        FastClass serviceFastClass = FastClass.create(serviceClass);
-        FastMethod serviceFastMethod = serviceFastClass.getMethod(methodName, parameterTypes);
-        return serviceFastMethod.invoke(serviceBean, parameters);
-    }
 }

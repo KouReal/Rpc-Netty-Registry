@@ -1,7 +1,8 @@
 package MessageUtils;
 
+import java.io.Serializable;
 
-public class RpcRequest {
+public class RpcRequest implements Serializable{
 	/**
      * 请求id，通过uuid生成
      */
@@ -74,6 +75,11 @@ public class RpcRequest {
 	}
 	public void setTokenid(String tokenid) {
 		this.tokenid = tokenid;
+	}
+	@Override
+	public String toString() {
+		return "RpcRequest [requestId=" + requestId + ", tokenid=" + tokenid + ", servicename=" + servicename
+				+ ", methodName=" + methodName + ", httpmethod=" + httpmethod + ", paramjsonstr=" + paramjsonstr + "]";
 	}
     
 }

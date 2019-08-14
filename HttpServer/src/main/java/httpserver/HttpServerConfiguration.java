@@ -46,13 +46,7 @@ public class HttpServerConfiguration {
     @Value("${file.url}")
     private String url;
     
-    
-    @Autowired  
-    @Qualifier("fileServerInitializer")  
-    private HttpServerInitializer httpserverinitializer;
-    
-    
-  
+
     @SuppressWarnings("unchecked")  
     @Bean(name = "serverBootstrap")  
     public ServerBootstrap bootstrap() {  

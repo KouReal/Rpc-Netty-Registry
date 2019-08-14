@@ -6,6 +6,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class RpcFuture implements Future<RpcResponse> {
     private volatile boolean cancelled = false;
 
     private Thread thread;
+    private ReentrantReadWriteLock rwlock = new ReentrantReadWriteLock();
 
     /**
      * 返回响应
@@ -80,16 +82,27 @@ public class RpcFuture implements Future<RpcResponse> {
     		throws InterruptedException,
     		ExecutionException, 
     		TimeoutException {
-        long nanos = unit.toNanos(timeout);
-        if (!done && nanos > 0L) {
-            this.thread = Thread.currentThread();
-            LockSupport.parkNanos(nanos);
-        }
-        if (done) {
-            return rpcResponse;
-        }
-        LOGGER.info("调用rpc服务超时,唤醒在此等待的线程{}",this.thread);
-        throw new TimeoutException("调用超时");
+    	if(isDone()){
+    		return rpcResponse;
+    	}else{
+    		long nanos = unit.toNanos(timeout);
+    		try {
+				rwlock.writeLock().lock();
+				if(isDone()){
+					return rpcResponse;
+				}
+				this.thread=Thread.currentThread();
+			} finally {
+				// TODO: handle finally clause
+				rwlock.writeLock().unlock();
+			}
+    		LockSupport.parkNanos(nanos);
+    		if (done) {
+                return rpcResponse;
+            }
+            LOGGER.info("调用rpc服务超时,唤醒在此等待的线程{}",this.thread);
+            throw new TimeoutException("调用超时");
+    	}
     }
 
     /**

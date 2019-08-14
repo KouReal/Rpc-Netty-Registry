@@ -1,6 +1,8 @@
 package configutils;
 
-public class ServiceRegist {
+import java.io.Serializable;
+
+public class ServiceRegist implements Serializable{
 	private String servicename;
 	private String addr;
 	
@@ -20,6 +22,10 @@ public class ServiceRegist {
 	}
 	public void setAddr(String addr) {
 		this.addr = addr;
+	}
+	@Override
+	public String toString() {
+		return "ServiceRegist [servicename=" + servicename + ", addr=" + addr + "]";
 	}
 	
 }

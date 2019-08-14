@@ -15,13 +15,9 @@ import RegistryCodec.RegistryDecoder;
 import RegistryCodec.RegistryEncoder;
 
 public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
-	@Autowired
-	private ConfigFuture configFuture;
 	
-	@Autowired
-	private TokenTask tokenTask;
 	
-    private ChannelHandler clientHandler = new ClientHandler(configFuture,tokenTask);
+    private ChannelHandler clientHandler = new ClientHandler();
     private ConnectionWatchDog connectionWatchDog;
 
     public ClientChannelInitializer(ReConnectionListener reConnectionListener) {
@@ -33,7 +29,7 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> 
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         ChannelPipeline pipeline = socketChannel.pipeline();
         //
-        pipeline.addLast(new IdleStateHandler(0, 8000, 0, TimeUnit.MILLISECONDS))
+        pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
                 //入方向解码
                 .addLast(new RegistryDecoder())
                 //出方向编码

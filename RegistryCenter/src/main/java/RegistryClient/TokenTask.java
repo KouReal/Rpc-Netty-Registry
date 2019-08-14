@@ -10,11 +10,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import RegistryUtil.NamedThreadFactory;
+import RegistryThreadUtil.NamedThreadFactory;
 import TokenUtils.Token;
 import TokenUtils.TokenCache;
 
-@Component
+@Component("tokenTask")
 public class TokenTask {
 	@Autowired
 	private TokenCache tokenCache;
@@ -32,7 +32,7 @@ public class TokenTask {
 			
 			@Override
 			public void run() {
-				log.info("tokentask执行添加token任务，线程：{}",Thread.currentThread());
+				log.info("tokentask执行添加token:{}任务，线程：{}",token,Thread.currentThread());
 				tokenCache.addtoken(token);
 				
 			}

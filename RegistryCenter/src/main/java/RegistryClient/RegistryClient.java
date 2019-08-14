@@ -4,13 +4,16 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
+import org.springframework.test.context.ActiveProfiles;
 
+import MessageUtils.Header;
 import MessageUtils.RegistryMessage;
-import MessageUtils.RpcMessage;
-import MessageUtils.RpcRequest;
-import RegistryUtil.NamedThreadFactory;
+import RegistryParamConfigUtil.ParamConfig;
+import RegistryThreadUtil.NamedThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -18,16 +21,23 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import springutils.SpringContextStatic;
 
 
-@Component
+@Component("registryClient")
+@DependsOn(value={"springContextStatic","tokenTask"})
+
 public class RegistryClient {
-	@Value("${registry.serverip}")
-	private String targetIP;
+	/*private String serverip;
 	
-	@Value("${registry.serverport}")
-    private int targetPort;
-	
+    private int serverport;*/
+    
+    @Autowired
+    private ParamConfig paramConfig;
+
+
+
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RegistryClient.class);
 
 
@@ -39,7 +49,7 @@ public class RegistryClient {
     /**
      * 配置客户端 NIO 线程组
      */
-    private static EventLoopGroup group = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new NamedThreadFactory("Rpc-netty-client", false));
+    private static EventLoopGroup group = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new NamedThreadFactory("registry-client", false));
     /**
      * 创建并初始化 Netty 客户端 Bootstrap 对象
      */
@@ -52,11 +62,14 @@ public class RegistryClient {
 
     @PostConstruct
     private void init() {
-        connection = new Connection(targetIP, targetPort, bootstrap);
+    	LOGGER.info("serverip:{}",paramConfig.getServerip());
+    	LOGGER.info("SpringContextStatic：{}",SpringContextStatic.getApplicationContext());
+        connection = new Connection(paramConfig.getServerip(), paramConfig.getServerport(), bootstrap);
         ReConnectionListener reConnectionListener = new ReConnectionListener(connection);
         RegistryClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener));
-        ChannelFuture future = bootstrap.connect(targetIP,targetPort);
-		future.awaitUninterruptibly();
+        ChannelFuture future = bootstrap.connect(paramConfig.getServerip(), paramConfig.getServerport());
+		connection.bind(future.channel());
+        future.awaitUninterruptibly();
 		try {
 			future.sync();
 		} catch (InterruptedException e) {
@@ -80,4 +93,12 @@ public class RegistryClient {
         
         return channel;
     }
+
+
+	public void discover(String servicename) throws Exception {
+		RegistryMessage msg = new RegistryMessage(new Header(1, Header.REGISTRY_DISCOVER), (Object)servicename);
+		Channel channel = this.getChannel();
+        channel.writeAndFlush(msg);
+        LOGGER.info("registryclient send msg:{} with channel:{}",msg,channel);
+	}
 }

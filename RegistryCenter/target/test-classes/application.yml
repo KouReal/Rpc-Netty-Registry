@@ -1,3 +1,9 @@
+spring:
+    profiles:
+        active: test
+registry:
+    serverip: 127.0.0.1
+    serverport: 9090
 rpcconfig:
     dataconfig:
         uniformconfig:
@@ -11,12 +17,16 @@ rpcconfig:
         serviceconfig:
             #自定义配置的服务数量不确定
             - name: customer
+              ip: 127.0.0.1
               port: 8001
             - name: account
+              ip: 127.0.0.1
               port: 8002
             - name: dao
+              ip: 127.0.0.1
               port: 8003
             - name: testsso
+              ip: 127.0.0.1
               port: 8004
     ssoconfig:
         - leader-service: customer
@@ -27,8 +37,13 @@ rpcconfig:
            - testssos
 ---
 spring:
-    profiles:test
-testdata:
-    animals:
-        - cat
-        - dog
+    profiles: test
+registry:
+    serverip: 127.0.0.1
+    serverport: 9091
+---
+spring:
+    profiles: dev
+registry:
+    serverip: 127.0.0.1
+    serverport: 9092

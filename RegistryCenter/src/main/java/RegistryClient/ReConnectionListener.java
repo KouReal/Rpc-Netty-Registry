@@ -31,7 +31,7 @@ public class ReConnectionListener implements ChannelFutureListener {
                 ChannelPipeline channelPipeline = channel.pipeline();
                 channelPipeline.fireChannelInactive();
             } else {
-                LOGGER.debug("重连失败，且已经达到最大重试次数:{},不再进行重试!", Connection.DEFAULT_RECONNECT_TRY);
+                LOGGER.info("重连失败，且已经达到最大重试次数:{},不再进行重试!", Connection.DEFAULT_RECONNECT_TRY);
                 connection.unbind();
             }
         }

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import configutils.NormalConfig;
 
-@Component
+@Component("configFuture")
 public class ConfigFuture implements Future<NormalConfig>{
 	private Logger log = LoggerFactory.getLogger(ConfigFuture.class);
 
@@ -48,6 +48,7 @@ public class ConfigFuture implements Future<NormalConfig>{
 	}
 	
 	public void done(NormalConfig ncfg){
+		log.info("future done:ncfg:{}",ncfg);
 		this.ncfg = ncfg;
 		this.done=true;
 	}

@@ -21,8 +21,8 @@ public class TokenCache {
 	//可以转移到springboot的configurations类中
 		public static final Logger LOGGER = LoggerFactory.getLogger(TokenCache.class);
 		public ReentrantReadWriteLock  rwlock = new ReentrantReadWriteLock ();
-		@Autowired
-		private NormalConfig normalConfig;
+		public static int TOKEN_LIFE = 300000;
+		
 		
 		public List<Token> tokencache;
 		@PostConstruct
@@ -32,7 +32,7 @@ public class TokenCache {
 	           public void run() {  
 	            	checkoldtoken();
 	           }  
-	          }, normalConfig.getTOKEN_LIFE(), TimeUnit.MILLISECONDS);  
+	          }, TOKEN_LIFE, TimeUnit.MILLISECONDS);  
 		}
 
 
@@ -71,7 +71,7 @@ public class TokenCache {
 				rwlock.writeLock().lock();
 				for(Token token : tokencache){
 					Long live = System.currentTimeMillis() - token.getCreatetime().getTime();
-					if(live > normalConfig.getTOKEN_LIFE()){
+					if(live > TOKEN_LIFE){
 						LOGGER.info("tokencache remove old token with id:{}",token.getTid());
 						tokencache.remove(token);
 					}

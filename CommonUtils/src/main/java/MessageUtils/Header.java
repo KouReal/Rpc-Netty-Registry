@@ -1,6 +1,8 @@
 package MessageUtils;
 
-public class Header {
+import java.io.Serializable;
+
+public class Header implements Serializable{
     /**
      * 数据长度（不包含首部）
      */
@@ -14,6 +16,8 @@ public class Header {
     public static byte REGISTRY_NORMALCONFIG=4;
     public static byte REGISTRY_TOKEN=5;
     public static byte REGISTRY_SERVICE=6;
+    public static byte REGISTRY_DISCOVER=7;
+    public static byte REGISTRY_DISCOVER_REPLY=8;
 
     public Header(int dataLength, byte type) {
         this.dataLength = dataLength;

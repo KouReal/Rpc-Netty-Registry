@@ -1,6 +1,8 @@
 package MessageUtils;
 
-public class RpcMessage {
+import java.io.Serializable;
+
+public class RpcMessage implements Serializable{
 	private Header header;
 	private Object body;
 	public RpcMessage(Header header, Object body) {

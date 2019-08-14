@@ -4,18 +4,13 @@ package RegistryClient;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import springutils.SpringContextStatic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import MessageUtils.Header;
 import MessageUtils.RegistryMessage;
-import RegistryUtil.NamedThreadFactory;
 import TokenUtils.Token;
 import configutils.NormalConfig;
 
@@ -27,13 +22,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<RegistryMessage> 
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
     
-    private ConfigFuture configFuture;
-    private TokenTask tokenTask;
+    private ConfigFuture configFuture = (ConfigFuture) SpringContextStatic.getBean("configFuture");
+    private TokenTask tokenTask = (TokenTask) SpringContextStatic.getBean("tokenTask");
    
-    public ClientHandler(ConfigFuture configFuture,TokenTask tokenTask) {
-    	this.configFuture = configFuture;
-    	this.tokenTask = tokenTask;
-    }
+
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage msg) throws Exception {
@@ -44,6 +36,10 @@ public class ClientHandler extends SimpleChannelInboundHandler<RegistryMessage> 
         }else if(headertype==Header.REGISTRY_TOKEN){
         	LOGGER.info("registryclient 接收到Token");
         	tokenTask.settoken((Token)msg.getBody());
+        }else if(headertype==Header.REGISTRY_DISCOVER_REPLY){
+        	
+        }else{
+        	LOGGER.info("registryclient收到不明确的响应消息：{}",msg);
         }
     }
 

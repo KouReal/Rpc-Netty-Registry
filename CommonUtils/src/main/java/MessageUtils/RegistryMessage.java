@@ -1,6 +1,8 @@
 package MessageUtils;
 
-public class RegistryMessage {
+import java.io.Serializable;
+
+public class RegistryMessage implements Serializable{
 	Header header;
 	Object Body;
 	
@@ -21,4 +23,9 @@ public class RegistryMessage {
 	public void setBody(Object body) {
 		Body = body;
 	}
+	@Override
+	public String toString() {
+		return "RegistryMessage [header=" + header + ", Body=" + Body + "]";
+	}
+	
 }

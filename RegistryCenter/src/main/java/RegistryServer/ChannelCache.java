@@ -4,11 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.springframework.boot.test.context.runner.ReactiveWebApplicationContextRunner;
 import org.springframework.stereotype.Component;
 
 import io.netty.channel.Channel;
 
-@Component
+@Component("channelCache")
 public class ChannelCache {
 	private Map<String, Channel> cache=new HashMap<String, Channel>();
 	private ReentrantReadWriteLock rwlock = new ReentrantReadWriteLock();
@@ -24,17 +25,12 @@ public class ChannelCache {
 					return true;
 				}
 			}
-		}finally{
-			rwlock.writeLock().unlock();
-		}
-		
-		try{
-			rwlock.writeLock().lock();
 			cache.put(servicename, channel);
 			return true;
 		}finally{
 			rwlock.writeLock().unlock();
 		}
+
 	}
 	public Channel findchannelbyservicename(String servicename){
 		if(servicename==null){

@@ -1,18 +1,24 @@
 package TokenUtils;
 
 import java.util.Date;
+import java.util.Map;
 
 public class Token {
 	//createtime 创建时间（用于定期销毁)
 	private Date createtime;
 	//servicename leadername
 	private String leadername;
+	
+	//附加信息json字符串，如：{"customerid" : "1"}
+	private Map<String, String> attachinfo;
 	//tid uuid号码
 	private String tid;
-	public Token(Date createtime, String leadername, String tid) {
+	
+	public Token(Date createtime, String leadername, Map<String, String> attachinfo, String tid) {
 		super();
 		this.createtime = createtime;
-		this.setLeadername(leadername);
+		this.leadername = leadername;
+		this.attachinfo = attachinfo;
 		this.tid = tid;
 	}
 	public Date getCreatetime() {
@@ -34,4 +40,16 @@ public class Token {
 	public void setLeadername(String leadername) {
 		this.leadername = leadername;
 	}
+	public Map<String, String> getAttachinfo() {
+		return attachinfo;
+	}
+	public void setAttachinfo(Map<String, String> attachinfo) {
+		this.attachinfo = attachinfo;
+	}
+	@Override
+	public String toString() {
+		return "Token [createtime=" + createtime + ", leadername=" + leadername + ", attachinfo=" + attachinfo
+				+ ", tid=" + tid + "]";
+	}
+	
 }

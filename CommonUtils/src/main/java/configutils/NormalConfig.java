@@ -1,16 +1,17 @@
 package configutils;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import RegistryUtil.Serviceconfig;
-import RegistryUtil.Ssoconfig;
-import RegistryUtil.Uniformconfig;
+import java.io.Serializable;
 
-public class NormalConfig {
-	@Autowired
+import org.springframework.beans.factory.annotation.Autowired;
+
+import MessageUtils.Serviceconfig;
+import MessageUtils.Ssoconfig;
+import MessageUtils.Uniformconfig;
+
+
+public class NormalConfig implements Serializable{
 	public Uniformconfig uniformconfig;
-	@Autowired
 	public Serviceconfig serviceconfig;
-	@Autowired
 	public Ssoconfig ssoconfig;
 	public Uniformconfig getUniformconfig() {
 		return uniformconfig;
@@ -38,6 +39,11 @@ public class NormalConfig {
 	}
 	public NormalConfig() {
 		// TODO Auto-generated constructor stub
+	}
+	@Override
+	public String toString() {
+		return "NormalConfig [uniformconfig=" + uniformconfig + ", serviceconfig=" + serviceconfig + ", ssoconfig="
+				+ ssoconfig + "]";
 	}
 	
 

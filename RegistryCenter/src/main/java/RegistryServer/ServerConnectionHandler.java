@@ -16,10 +16,12 @@ public class ServerConnectionHandler extends SimpleChannelInboundHandler<Registr
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage message) throws Exception {
-        Header header = message.getHeader();
+        LOGGER.info("receive msg:{}",message);
+        System.out.println("receive msg:{}"+message);
+    	Header header = message.getHeader();
         //若是心跳请求则直接返回，否则交给下一handler处理
         if (Header.HEART_BEAT_REQUEST == header.getType()) {
-            LOGGER.debug("注册中心收到心跳请求，channel:{}", channelHandlerContext.channel());
+            LOGGER.info("注册中心收到心跳请求，channel:{}", channelHandlerContext.channel());
         } else {
             channelHandlerContext.fireChannelRead(message);
         }

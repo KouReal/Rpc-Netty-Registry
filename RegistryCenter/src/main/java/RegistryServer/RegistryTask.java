@@ -11,37 +11,53 @@ import MessageUtils.Header;
 import MessageUtils.RegistryMessage;
 import MessageUtils.RpcRequest;
 import MessageUtils.RpcResponse;
-import RegistryUtil.Ssoconfig;
-import RegistryUtil.ssogroup;
+import MessageUtils.Ssoconfig;
+import MessageUtils.ssogroup;
 import TokenUtils.Token;
 import configutils.NormalConfig;
-import configutils.ServiceConfig;
 import configutils.ServiceRegist;
-import configutils.TokenConfig;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.protostuff.Service;
+import springutils.SpringContextStatic;
 
 public class RegistryTask implements Runnable {
-	private Logger log = LoggerFactory.getLogger(RegistryTask.class);
+	private static Logger log = LoggerFactory.getLogger(RegistryTask.class);
 
     private ChannelHandlerContext ctx;
     private RegistryMessage msg;
-    @Autowired
-    private ChannelCache channelCache;
+    private ChannelCache channelCache = null;
+    private ServiceAddrCache serviceAddrCache = null;
+    private NormalConfig normalConfig = null;
     
-    @Autowired
-    private NormalConfig normalConfig;
+    /*private ChannelCache channelCache = SpringContextStatic.getBean(ChannelCache.class);
+    
+    private ServiceAddrCache serviceAddrCache = SpringContextStatic.getBean(ServiceAddrCache.class);
+    
+    private NormalConfig normalConfig = SpringContextStatic.getBean(NormalConfig.class);*/
 
     public RegistryTask(ChannelHandlerContext ctx, RegistryMessage msg) {
-        this.ctx = ctx;
+    	System.out.println("constructing registrytask,appctx:"+SpringContextStatic.getApplicationContext());
+    	log.info("doRunServer:appctx:{}",SpringContextStatic.getApplicationContext());
+    	log.info("normalconfig:{}",SpringContextStatic.getBean("normalConfig"));
+    	/*log.info("channelcache:{}",SpringContextStatic.getBean(ChannelCache.class));
+    	log.info("serviceaddrcache:{}",SpringContextStatic.getBean(ServiceAddrCache.class));*/
+        
+    	this.ctx = ctx;
         this.msg = msg;
+        /*this.channelCache = SpringContextStatic.getBean(ChannelCache.class);
+        this.serviceAddrCache = SpringContextStatic.getBean(ServiceAddrCache.class);
+        this.normalConfig = SpringContextStatic.getBean(NormalConfig.class);*/
+        
+        this.channelCache = (ChannelCache) SpringContextStatic.getBean("channelCache");
+        this.serviceAddrCache = (ServiceAddrCache) SpringContextStatic.getBean("serviceAddrCache");
+        this.normalConfig = (NormalConfig) SpringContextStatic.getBean("normalConfig");
     }
 
     @Override
     public void run() {
-        // 创建并初始化 RPC 响应对象
-        RpcResponse response = new RpcResponse();
+    	log.info("registryserver get msg:{}",msg);
+//        System.out.println("registrytask:  "+msg);
         byte msgtype = msg.getHeader().getType();
         if(msgtype==Header.REGISTRY_SERVICE){
         	
@@ -60,6 +76,13 @@ public class RegistryTask implements Runnable {
         	Token token = (Token)msg.getBody();
         	log.info("收到Token,ssoleader是:{},正在向sso组内成员广播Token:{}",token.getLeadername(),token);
         	sendtoken(token);
+        }else if(msgtype==Header.REGISTRY_DISCOVER){
+        	String servicename = (String)msg.getBody();
+        	log.info("收到discover消息，servicename：{}",servicename);
+        	String addr = serviceAddrCache.findaddrbyservicename(servicename);
+        	log.info("servicename：{},对应地址为：{}",servicename,addr);
+        	RegistryMessage drmsg = new RegistryMessage(new Header(1, Header.REGISTRY_DISCOVER_REPLY), (Object)addr);
+        	ctx.writeAndFlush(drmsg);
         }else{
         	log.info("注册中心收到消息类型无法解析,类型为:{}",msgtype);
         	return ;

@@ -21,9 +21,10 @@ public class RpcServiceHandler extends SimpleChannelInboundHandler<RpcRequest> {
 
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, RpcRequest request) throws Exception {
-        LOGGER.info("服务端收到 rpc request:{}", request.toString());
+        LOGGER.info("服务端收到 rpc request:{}", request);
         //交由业务线程池执行
         threadPool.execute(new RpcTask(ctx, request));
+        LOGGER.info("正在处理rpc request:{}",request);
     }
 
     @Override

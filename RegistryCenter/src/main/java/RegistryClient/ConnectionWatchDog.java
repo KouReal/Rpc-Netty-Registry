@@ -32,7 +32,7 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage message) throws Exception {
         //若是心跳响应则直接返回，否则交给下一handler处理
         Header header = message.getHeader();
-        if (Header.RPC_RESPONSE == header.getType()) {
+        if (Header.RPC_RESPONSE != header.getType()) {
             channelHandlerContext.fireChannelRead(message);
         }
     }
@@ -45,7 +45,7 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
 
-        LOGGER.debug("the link is disconnected with channel:{},"
+        LOGGER.info("the link is disconnected with channel:{},"
         		+ "will reconnect in eventloop:{},"
         		+ "will remove channel in rpcfutureholder",
         		ctx.channel(),ctx.channel().eventLoop()
@@ -61,8 +61,8 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
             if(idleStateEvent.state()==IdleState.WRITER_IDLE){
-            	RegistryMessage hb = new RegistryMessage(new Header(0, Header.HEART_BEAT_REQUEST), null);
-            	LOGGER.debug("send heartbeat with channel:{}, in eventloop:{}",ctx.channel(),ctx.channel().eventLoop());
+            	RegistryMessage hb = new RegistryMessage(new Header(1, Header.HEART_BEAT_REQUEST), null);
+            	LOGGER.info("send heartbeat with channel:{}, in eventloop:{}",ctx.channel(),ctx.channel().eventLoop());
             	ctx.writeAndFlush(hb);
             }
         } else {

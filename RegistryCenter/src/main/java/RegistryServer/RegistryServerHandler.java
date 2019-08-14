@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import MessageUtils.RegistryMessage;
-import MessageUtils.RpcRequest;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -22,9 +21,13 @@ public class RegistryServerHandler extends SimpleChannelInboundHandler<RegistryM
 
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, RegistryMessage msg) throws Exception {
-        LOGGER.info("服务端收到 registrymsg", msg.toString());
+        LOGGER.info("服务端收到 registrymsg{},in thread{}", msg.toString(),Thread.currentThread());
         //交由业务线程池执行
         threadPool.execute(new RegistryTask(ctx, msg));
+        //RegistryTask task = new RegistryTask(ctx, msg);
+        //threadPool.submit(task);
+//        new Thread(new RegistryTask(ctx,msg)).start();
+        System.out.println("卡了吗？");
     }
 
     @Override

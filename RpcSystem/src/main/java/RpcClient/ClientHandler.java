@@ -29,7 +29,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
-        String requestId = rpcResponse.getRequestId();
+        String requestId = rpcResponse.getRequestid();
         RpcFuture future = RpcFutureCache.removeFuture(channelHandlerContext.channel(), requestId);
         if (future != null && !future.isCancelled()) {
             //更新对应的RpcFuture

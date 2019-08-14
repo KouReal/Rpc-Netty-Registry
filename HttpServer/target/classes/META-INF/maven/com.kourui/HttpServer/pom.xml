@@ -66,6 +66,11 @@
 			<artifactId>CommonUtils</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.kourui</groupId>
+			<artifactId>RpcSystem</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 

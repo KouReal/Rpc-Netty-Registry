@@ -1,0 +1,6 @@
+spring:
+    profiles: test
+testdata:
+    registry:
+        serverip: 127.0.0.1
+        serverport: 9090

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+	    <setting name="logImpl" value="LOG4J"/>
+	    <setting name="cacheEnabled" value="false"/>
+	    <setting name="mapUnderscoreToCamelCase" value="true"/>
+	    <setting name="aggressiveLazyLoading" value="true"/>
+	</settings>
+    
+    <typeAliases>
+        <package name="tk.mybatis.simple.model"/>
+    </typeAliases>
+    
+	<typeHandlers>
+		<typeHandler 
+			javaType="typehandler.EnableCard" 
+			handler="typehandler.EnableCardTypeHandler"/>
+	</typeHandlers>
+	
+
+
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC">
+                <property name="" value=""/>
+            </transactionManager>
+            <dataSource type="UNPOOLED">
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/banktest?useUnicode=true&amp;characterEncoding=utf8"/>
+                <property name="username" value="root"/>
+                <property name="password" value="123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <mappers>
+        <package name="mapper"/>
+    </mappers>
+    
+    
+</configuration>

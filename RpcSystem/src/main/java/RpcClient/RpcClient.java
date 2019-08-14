@@ -11,6 +11,7 @@ import rpcutils.NamedThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import MessageUtils.Header;
 import MessageUtils.RpcMessage;
 import MessageUtils.RpcRequest;
 import RpcTrans.RpcFuture;
@@ -85,9 +86,11 @@ public class RpcClient {
  
         try {
             //写请求并直接返回
-        	RpcMessage rpcMessage = new RpcMessage(header, body)
-            channel.writeAndFlush(rpcrequest);
-            LOGGER.debug("rpcclient invokewithfuture rpcrequest:{},with channel:{}", rpcrequest.toString(),channel);
+        	
+        	RpcMessage rpcMessage = new RpcMessage(new Header(1, Header.RPC_REQUEST), (Object)rpcrequest);
+        	LOGGER.info("rpcclient invokewithfuture rpcmessage:{},with channel:{}", rpcMessage,channel);
+            channel.writeAndFlush(rpcMessage);
+            
         } catch (Exception e) {
         	future.cancel(true);
         	RpcFutureCache.remove(channel.eventLoop(),channel,future);

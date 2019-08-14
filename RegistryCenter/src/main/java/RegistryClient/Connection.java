@@ -17,10 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import exceptionutils.RpcServiceDisconnectException;
 
-/**
- * @author jsj
- * @date 2018-10-24
- */
+
 public class Connection {
 
     private Channel channel;
@@ -51,16 +48,16 @@ public class Connection {
 
     public Channel getChannel() throws RpcServiceDisconnectException{
     	if(count>DEFAULT_RECONNECT_TRY){
-    		LOGGER.debug("连续重连次数超过{}次，服务器关闭了，不再生成channel",DEFAULT_RECONNECT_TRY);
+    		LOGGER.info("连续重连次数超过{}次，服务器关闭了，不再生成channel",DEFAULT_RECONNECT_TRY);
     	}
     	Channel ch = Channel();
     	if(ch!=null){
-    		LOGGER.debug("当前线程:{}找到了不为空的channel",Thread.currentThread().toString());
+    		LOGGER.info("当前线程:{}找到了不为空的channel",Thread.currentThread().toString());
     		return ch; 
     	}else{
     		try{
     			thread_rwlock.writeLock().lock();
-    			LOGGER.debug("当前线程:{}进入wait等待channel队列,最多等待{}毫秒",Thread.currentThread().toString(),DEFAULT_CONNECT_TIMEOUT*5);
+    			LOGGER.info("当前线程:{}进入wait等待channel队列,最多等待{}毫秒",Thread.currentThread().toString(),DEFAULT_CONNECT_TIMEOUT*5);
     			ch = Channel();
     			if(ch!=null)return ch;
     			
@@ -70,13 +67,13 @@ public class Connection {
     		}
     		long nanos = TimeUnit.MILLISECONDS.toNanos(DEFAULT_CONNECT_TIMEOUT*5);
     		LockSupport.parkNanos(Thread.currentThread(), nanos);
-    		LOGGER.debug("当前线程:{}被eventloop从waitchannel队列唤醒,然后查channel是否更新",Thread.currentThread().toString());
+    		LOGGER.info("当前线程:{}被eventloop从waitchannel队列唤醒,然后查channel是否更新",Thread.currentThread().toString());
     		ch = Channel();
     		if(ch!=null){
-    			LOGGER.debug("当前线程:{}经过等待之后等到了不为null的channel:{}",Thread.currentThread().toString(),ch);
+    			LOGGER.info("当前线程:{}经过等待之后等到了不为null的channel:{}",Thread.currentThread().toString(),ch);
     			return ch;
     		}else{
-    			LOGGER.debug("当前线程:{}经过等待之后也没有等到能用的channel",Thread.currentThread().toString());
+    			LOGGER.info("当前线程:{}经过等待之后也没有等到能用的channel",Thread.currentThread().toString());
     			String erromsg = "调用客户端的业务线程遭遇远程服务若干次掉线异常："+Thread.currentThread().toString();
     			throw new RpcServiceDisconnectException(erromsg);
     		}
@@ -85,9 +82,9 @@ public class Connection {
     public Channel Channel() {
     	
     	try{
-    		LOGGER.debug("thread:{} in Connection.getChannel trying readlock",
+    		LOGGER.info("thread:{} in Connection.getChannel trying readlock",
     				Thread.currentThread().toString());
-    		channel_rwlock.readLock();
+    		channel_rwlock.readLock().lock();
     		
     		return channel;
     	}finally{
@@ -97,7 +94,7 @@ public class Connection {
 
     public void unbind() {
     	try{
-    		LOGGER.debug("thread:{} unbind channel:{} Connection",
+    		LOGGER.info("thread:{} unbind channel:{} Connection",
     				Thread.currentThread().toString(),channel);
     		channel_rwlock.writeLock().lock();
     		channel=null;
