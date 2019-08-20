@@ -65,7 +65,7 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.protostuff</groupId>
 			<artifactId>protostuff-core</artifactId>
 		</dependency>
@@ -76,7 +76,20 @@
 		<dependency>
 			<groupId>io.protostuff</groupId>
 			<artifactId>protostuff-api</artifactId>
-		</dependency>
+		</dependency> -->
+		<dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.dyuproject.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+        </dependency>
+        <!-- Objenesis -->
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>com.kourui</groupId>

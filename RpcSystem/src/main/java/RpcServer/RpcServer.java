@@ -11,12 +11,9 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import MessageUtils.serviceaddr;
-import configutils.NormalConfig;
 import exceptionutils.RpcErrorException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -24,10 +21,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import protocolutils.Header;
+import protocolutils.NormalConfig;
 import rpcutils.NamedThreadFactory;
+import static java.util.Arrays.asList;
 
 @Component("rpcServer")
-@DependsOn(value={"normalConfig","springContextStatic"})
+@DependsOn(value={"normalConfig","springContextStatic","serviceProxy"})
 public class RpcServer{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
@@ -36,8 +36,6 @@ public class RpcServer{
     @Autowired
     private NormalConfig normalConfig;
     
-    @Autowired
-    private ServiceHolder serviceHolder;
 
     /**
      * Netty 的连接线程池
@@ -56,27 +54,17 @@ public class RpcServer{
     private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2,
             Runtime.getRuntime().availableProcessors() * 2, 60L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(1000), new NamedThreadFactory());
-
+    
+    private static List<Header> protocol_whitelist = asList(Header.heart_beat,Header.rpc_request);
+    
     /**
      * 启动 Netty RPC服务器服务端
      * @throws RpcErrorException 
      */
     @PostConstruct
     private void doRunServer() throws RpcErrorException {
-       List<serviceaddr> serviceaddrsaddrs = normalConfig.getServiceconfig().getServiceconfig();
-       String sname = serviceHolder.getServicename();
-       int port = -1;
-       for (serviceaddr sa : serviceaddrsaddrs) {
-    	   String name = sa.getName();
-    	   if(name!=null && name.equals(sname)){
-    		   port = sa.getPort();
-    		   break;
-    	   }
-       }
-       if(port==-1){
-    	   LOGGER.info("收到的config中没有本服务{}的port",sname);
-    	   throw new RpcErrorException("收到的config中没有本服务的port");
-       }
+    	int port = normalConfig.getServiceAddr().getPort();
+      
            try {
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = RpcServer.this.initServerBootstrap(bossGroup, workerGroup);
@@ -108,7 +96,7 @@ public class RpcServer{
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childHandler(new ServerChannelInitializer(new RpcServiceHandler(threadPool)));
+                .childHandler(new ServerChannelInitializer(new RpcServiceHandler(threadPool),protocol_whitelist));
     }
 
 

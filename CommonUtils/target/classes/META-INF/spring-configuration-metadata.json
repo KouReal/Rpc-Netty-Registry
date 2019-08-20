@@ -2,60 +2,60 @@
   "groups": [
     {
       "name": "rpcconfig",
-      "type": "MessageUtils.Ssoconfig",
-      "sourceType": "MessageUtils.Ssoconfig"
+      "type": "configutils.SsoConfig",
+      "sourceType": "configutils.SsoConfig"
     },
     {
       "name": "rpcconfig.dataconfig",
-      "type": "MessageUtils.Serviceconfig",
-      "sourceType": "MessageUtils.Serviceconfig"
+      "type": "configutils.ServiceConfig",
+      "sourceType": "configutils.ServiceConfig"
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig",
-      "type": "MessageUtils.Uniformconfig",
-      "sourceType": "MessageUtils.Uniformconfig"
+      "type": "configutils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig"
     }
   ],
   "properties": [
     {
-      "name": "rpcconfig.dataconfig.serviceconfig",
-      "type": "java.util.List<MessageUtils.serviceaddr>",
-      "sourceType": "MessageUtils.Serviceconfig"
+      "name": "rpcconfig.dataconfig.serviceaddrs",
+      "type": "java.util.List<configutils.ServiceAddr>",
+      "sourceType": "configutils.ServiceConfig"
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig.client-connect-timeout",
       "type": "java.lang.Integer",
-      "sourceType": "MessageUtils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig",
       "defaultValue": 0
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig.client-reconnect-try",
       "type": "java.lang.Integer",
-      "sourceType": "MessageUtils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig",
       "defaultValue": 0
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig.client-write-idle",
       "type": "java.lang.Integer",
-      "sourceType": "MessageUtils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig",
       "defaultValue": 0
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig.server-read-idle",
       "type": "java.lang.Integer",
-      "sourceType": "MessageUtils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig",
       "defaultValue": 0
     },
     {
       "name": "rpcconfig.dataconfig.uniformconfig.token-life",
       "type": "java.lang.Integer",
-      "sourceType": "MessageUtils.Uniformconfig",
+      "sourceType": "configutils.Uniformconfig",
       "defaultValue": 0
     },
     {
-      "name": "rpcconfig.ssoconfig",
-      "type": "java.util.List<MessageUtils.ssogroup>",
-      "sourceType": "MessageUtils.Ssoconfig"
+      "name": "rpcconfig.ssogroups",
+      "type": "java.util.List<configutils.SsoGroup>",
+      "sourceType": "configutils.SsoConfig"
     }
   ],
   "hints": []

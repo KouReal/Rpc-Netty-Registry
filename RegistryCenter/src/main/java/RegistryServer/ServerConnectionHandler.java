@@ -3,28 +3,26 @@ package RegistryServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import MessageUtils.Header;
-import MessageUtils.RegistryMessage;
-import MessageUtils.RpcMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
 
-public class ServerConnectionHandler extends SimpleChannelInboundHandler<RegistryMessage> {
+public class ServerConnectionHandler extends SimpleChannelInboundHandler<LenPreMsg> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerConnectionHandler.class);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage message) throws Exception {
-        LOGGER.info("receive msg:{}",message);
-        System.out.println("receive msg:{}"+message);
-    	Header header = message.getHeader();
-        //若是心跳请求则直接返回，否则交给下一handler处理
-        if (Header.HEART_BEAT_REQUEST == header.getType()) {
-            LOGGER.info("注册中心收到心跳请求，channel:{}", channelHandlerContext.channel());
-        } else {
-            channelHandlerContext.fireChannelRead(message);
+    protected void channelRead0(ChannelHandlerContext ctx, LenPreMsg msg) throws Exception {
+//        LOGGER.info("receive msg:{}",msg);
+//        System.out.println("receive msg:{}"+message);
+        Header header = msg.getHeader();
+        if(Header.heart_beat == header){
+        	LOGGER.info("注册中心channel:{},收到心跳请求", ctx.channel());
+        	return ;
         }
+    	ctx.fireChannelRead(msg);
     }
     
     @Override
@@ -32,7 +30,7 @@ public class ServerConnectionHandler extends SimpleChannelInboundHandler<Registr
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
             if(idleStateEvent.state()==IdleState.READER_IDLE){
-            	LOGGER.info("服务中心not receive heartbeat timeout, will close server");
+            	LOGGER.info("服务中心not receive heartbeat timeout, will close this channel");
                 ctx.close();
             }
             

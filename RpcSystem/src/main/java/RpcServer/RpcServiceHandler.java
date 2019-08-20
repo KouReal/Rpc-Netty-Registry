@@ -4,13 +4,15 @@ import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import MessageUtils.RpcRequest;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
+import protocolutils.RpcRequest;
 
 @ChannelHandler.Sharable
-public class RpcServiceHandler extends SimpleChannelInboundHandler<RpcRequest> {
+public class RpcServiceHandler extends SimpleChannelInboundHandler<LenPreMsg> {
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcServiceHandler.class);
 
     private ExecutorService threadPool;
@@ -20,11 +22,14 @@ public class RpcServiceHandler extends SimpleChannelInboundHandler<RpcRequest> {
     }
 
     @Override
-    public void channelRead0(final ChannelHandlerContext ctx, RpcRequest request) throws Exception {
-        LOGGER.info("服务端收到 rpc request:{}", request);
+    public void channelRead0(final ChannelHandlerContext ctx, LenPreMsg msg) throws Exception {
+    	
+        LOGGER.info("rpc服务端收到 msg:{}", msg);
         //交由业务线程池执行
-        threadPool.execute(new RpcTask(ctx, request));
-        LOGGER.info("正在处理rpc request:{}",request);
+        if(msg.getHeader()==Header.rpc_request){
+        	threadPool.execute(new RpcTask(ctx, msg));
+        }
+        
     }
 
     @Override

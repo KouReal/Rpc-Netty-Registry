@@ -6,22 +6,24 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import lenprecodec.LenPreMsgDecoder;
+import lenprecodec.LenPreMsgEncoder;
+import lenprecodec.MessageFilter;
+import protocolutils.Header;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.springframework.beans.factory.annotation.Autowired;
 
-import RegistryCodec.RegistryDecoder;
-import RegistryCodec.RegistryEncoder;
 
 public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> {
 	
 	
     private ChannelHandler clientHandler = new ClientHandler();
     private ConnectionWatchDog connectionWatchDog;
-
-    public ClientChannelInitializer(ReConnectionListener reConnectionListener) {
-
+    private MessageFilter messageFilter;
+    public ClientChannelInitializer(ReConnectionListener reConnectionListener, List<Header> whitelist) {
+    	this.messageFilter = new MessageFilter(whitelist);
         this.connectionWatchDog = new ConnectionWatchDog(reConnectionListener);
     }
 
@@ -31,9 +33,11 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> 
         //
         pipeline.addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
                 //入方向解码
-                .addLast(new RegistryDecoder())
+                .addLast(new LenPreMsgDecoder())
                 //出方向编码
-                .addLast(new RegistryEncoder())
+                .addLast(new LenPreMsgEncoder())
+                
+                .addLast(messageFilter)
                 //前置连接监视处理器
                 .addLast(connectionWatchDog)
                 //业务处理

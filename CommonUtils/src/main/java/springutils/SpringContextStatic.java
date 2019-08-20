@@ -3,9 +3,9 @@ package springutils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 @Component("springContextStatic")
@@ -13,7 +13,7 @@ public class SpringContextStatic implements ApplicationContextAware {
 	private static Logger LOGGER = LoggerFactory.getLogger(SpringContextStatic.class);
  
     // Spring应用上下文环境
-    @Autowired
+	public static ConfigurableApplicationContext runctx;
     public static ApplicationContext applicationContext;
  
     /**

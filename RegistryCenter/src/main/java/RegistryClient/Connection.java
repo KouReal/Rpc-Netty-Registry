@@ -4,7 +4,6 @@ package RegistryClient;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import net.bytebuddy.agent.builder.AgentBuilder.CircularityLock.Default;
 
 import java.util.ArrayList;
 import java.util.List;

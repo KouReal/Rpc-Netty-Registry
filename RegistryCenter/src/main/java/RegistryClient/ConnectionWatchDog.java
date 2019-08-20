@@ -1,26 +1,19 @@
 package RegistryClient;
 
-
-
-import MessageUtils.Header;
-import MessageUtils.RegistryMessage;
-import MessageUtils.RpcMessage;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
 
-import org.apache.commons.logging.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-
-
 @ChannelHandler.Sharable
-public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMessage> implements Runnable {
+public class ConnectionWatchDog extends SimpleChannelInboundHandler<LenPreMsg> implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionWatchDog.class);
     private ReConnectionListener listener;
 
@@ -29,12 +22,13 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage message) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, LenPreMsg msg) throws Exception {
         //若是心跳响应则直接返回，否则交给下一handler处理
-        Header header = message.getHeader();
-        if (Header.RPC_RESPONSE != header.getType()) {
-            channelHandlerContext.fireChannelRead(message);
-        }
+    	Header header = msg.getHeader();
+    	if(Header.heart_beat == header){
+    		LOGGER.info("registryclient 收到心跳请求");
+    	}
+    	ctx.fireChannelRead(msg);
     }
 
     @Override
@@ -61,8 +55,8 @@ public class ConnectionWatchDog extends SimpleChannelInboundHandler<RegistryMess
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent idleStateEvent = (IdleStateEvent) evt;
             if(idleStateEvent.state()==IdleState.WRITER_IDLE){
-            	RegistryMessage hb = new RegistryMessage(new Header(1, Header.HEART_BEAT_REQUEST), null);
-            	LOGGER.info("send heartbeat with channel:{}, in eventloop:{}",ctx.channel(),ctx.channel().eventLoop());
+            	LenPreMsg hb = LenPreMsg.buildsimplemsg(Header.heart_beat, null);
+            	LOGGER.debug("send heartbeat with channel:{}, in eventloop:{}",ctx.channel(),ctx.channel().eventLoop());
             	ctx.writeAndFlush(hb);
             }
         } else {

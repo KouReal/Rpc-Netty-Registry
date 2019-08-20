@@ -5,16 +5,13 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSON;
 
-import MessageUtils.RpcRequest;
 import exceptionutils.ParseRequestException;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -32,17 +29,20 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.handler.codec.http.multipart.MemoryAttribute;
 import io.netty.util.CharsetUtil;
+import protocolutils.RpcRequest;
 
 public class HttpMessageUtil {
 	public static Logger LOGGER = LoggerFactory.getLogger(HttpMessageUtil.class);
 	
 	public static List<String> tokenidcache = new ArrayList<String>();
-	public static Map<String, String> token2urlcache = new HashMap<String, String>();
+//	public static Map<String, String> token2urlcache = new HashMap<String, String>();
+	
+	public static String httpaddr = null; 
 	
 	
 	public static RpcRequest buildrpcrequest(FullHttpRequest msg) throws ParseRequestException{
 
-		LOGGER.info("fullhttprequest :{}",msg);
+		
 		
 		HttpHeaders headers = msg.headers();
 		LOGGER.info("headers : {}",headers);
@@ -58,6 +58,10 @@ public class HttpMessageUtil {
 		}
 		LOGGER.info("cookie:tokenid:{}",tokenid);
 		String uri = msg.uri();
+		int idx = uri.indexOf("?");
+		if(idx!=-1){
+			uri = uri.split("\\?")[0];
+		}
 		LOGGER.info("http:uri:{}", uri);
 		String[] urisps = uri.split("/");
 		LOGGER.info(urisps[1]+" " +urisps[2]+" "+urisps[3]);
@@ -70,19 +74,21 @@ public class HttpMessageUtil {
 		if(msg.method()==HttpMethod.POST){
 			httpmethod="post";
 			Map<String, Object> postparams = parsepostparams(msg);
+			postparams.put("tokenid", tokenid);
 			paramstr = JSON.toJSONString(postparams);
 			LOGGER.info("post params : {}",paramstr);
 		}else if(msg.method()==HttpMethod.GET){
 			httpmethod="get";
 			Map<String,String> getparms = parsegetparams(msg);
+			getparms.put("tokenid", tokenid);
 			paramstr = JSON.toJSONString(getparms);
 			LOGGER.info("get params : {}",paramstr);
 		}else{
 			throw new ParseRequestException("不支持http请求方式："+msg.method().toString());
 		}
-		String requestId = UUID.randomUUID().toString();
-		LOGGER.info("new requestid:{}",requestId);
-		RpcRequest rpcRequest = new RpcRequest(requestId, tokenid, servicename, methodname, httpmethod, paramstr);
+		/*String requestId = UUID.randomUUID().toString();
+		LOGGER.info("new requestid:{}",requestId);*/
+		RpcRequest rpcRequest = new RpcRequest(tokenid, servicename, methodname, httpmethod, paramstr);
 		return rpcRequest;
 	}
 	
@@ -129,6 +135,7 @@ public class HttpMessageUtil {
 			if(cookie!=null){
 				response.headers().set("Set-Cookie",ClientCookieEncoder.STRICT.encode(cookie));
 			}
+			if(message==null)return response;
 			ByteBuf buffer = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
 			response.content().writeBytes(buffer);
 			return response;
@@ -141,19 +148,14 @@ public class HttpMessageUtil {
 		LOGGER.info("uri 分解长度:"+strs.length);
 		if(strs.length==3){
 			String tid = strs[2];
-			if(token2urlcache==null||tid==null||tid.equals("")){
+			if(tokenidcache.contains(tid)){
+				return tid;
+			}else{
 				return null;
-			}
-			for (Map.Entry<String, String> entry : token2urlcache.entrySet()) {
-				if(tid.equals(entry.getKey())){
-					
-					return tid;
-				}
 			}
 		}else{
 			return null;
 		}
-		return null;
 	}
 
 }

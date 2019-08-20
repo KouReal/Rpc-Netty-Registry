@@ -28,6 +28,9 @@ rpcconfig:
             - name: testsso
               ip: 127.0.0.1
               port: 8004
+            - name: httpserver
+              ip: 127.0.0.1
+              port: 8005
     ssoconfig:
         - leader-service: customer
           login-addr: /customer/login

@@ -1,14 +1,10 @@
 package RegistryServer;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 
 import javax.annotation.PostConstruct;
 
@@ -20,17 +16,18 @@ import org.springframework.stereotype.Component;
 
 import RegistryParamConfigUtil.ParamConfig;
 import RegistryThreadUtil.NamedThreadFactory;
-import configutils.NormalConfig;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import springutils.SpringContextStatic;
+import protocolutils.Header;
 
-@Component
-@DependsOn(value={"springContextStatic","normalConfig","channelCache","serviceAddrCache"})
+import static java.util.Arrays.asList;
+
+@Component("registryServer")
+@DependsOn(value={"springContextStatic","centerConfig","channelCache","serviceAddrCache"})
 public class RegistryServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RegistryServer.class);
 	
@@ -59,17 +56,13 @@ public class RegistryServer {
     private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2,
             Runtime.getRuntime().availableProcessors() * 2, 60L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<>(1000), new NamedThreadFactory());
-    
+    private static List<Header> protocol_whitelist = asList(Header.heart_beat,Header.reg_addservice,Header.reg_discover,Header.reg_tokenconfig);
     /**
      * 启动 Netty 服务器服务端
      */
     @PostConstruct
     private void doRunServer() {
             try {
-            	/*LOGGER.info("doRunServer:appctx:{}",SpringContextStatic.getApplicationContext());
-            	LOGGER.info("normalconfig:{}",SpringContextStatic.getBean(NormalConfig.class));
-            	LOGGER.info("channelcache:{}",SpringContextStatic.getBean(ChannelCache.class));
-            	LOGGER.info("serviceaddrcache:{}",SpringContextStatic.getBean(ServiceAddrCache.class));*/
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = initServerBootstrap(bossGroup, workerGroup);
                 //绑定对应ip和端口，同步等待成功
@@ -100,7 +93,7 @@ public class RegistryServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
-                .childHandler(new ServerChannelInitializer(new RegistryServerHandler(threadPool)));
+                .childHandler(new ServerChannelInitializer(new RegistryServerHandler(threadPool),protocol_whitelist));
     }
 }
 

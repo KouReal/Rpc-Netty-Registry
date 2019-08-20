@@ -24,7 +24,7 @@ public class CustomerMapperTest extends BaseMapperTest {
 			//获取 UserMapper 接口
 			CustomerMapper mapper = sqlSession.getMapper(CustomerMapper.class);
 			//调用 selectById 方法，查询 id = 1 的用户
-			Customer customer = mapper.selectByPrimaryKey(5l);
+			Customer customer = mapper.selectByPrimaryKey(6l);
 			Assert.assertNotNull(customer);
 			//userName = admin
 			Assert.assertEquals("mike", customer.getUserName());

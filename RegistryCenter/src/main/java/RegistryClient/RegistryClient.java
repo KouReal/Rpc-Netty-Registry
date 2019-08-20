@@ -1,19 +1,19 @@
 package RegistryClient;
 
+import java.util.List;
+
 import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-import org.springframework.test.context.ActiveProfiles;
 
-import MessageUtils.Header;
-import MessageUtils.RegistryMessage;
 import RegistryParamConfigUtil.ParamConfig;
 import RegistryThreadUtil.NamedThreadFactory;
+import asyncutils.FutureCache;
+import asyncutils.ResultFuture;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -21,7 +21,10 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
 import springutils.SpringContextStatic;
+import static java.util.Arrays.asList;
 
 
 @Component("registryClient")
@@ -57,19 +60,22 @@ public class RegistryClient {
             //禁用nagle算法
             .option(ChannelOption.TCP_NODELAY, true);
 
+    private static List<Header> protocol_whitelist = asList(Header.heart_beat,Header.reg_discover,Header.reg_normalconfig,Header.reg_tokenconfig);
     
 
 
     @PostConstruct
     private void init() {
-    	LOGGER.info("serverip:{}",paramConfig.getServerip());
+    	
     	LOGGER.info("SpringContextStatic：{}",SpringContextStatic.getApplicationContext());
         connection = new Connection(paramConfig.getServerip(), paramConfig.getServerport(), bootstrap);
         ReConnectionListener reConnectionListener = new ReConnectionListener(connection);
-        RegistryClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener));
+        RegistryClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelist));
         ChannelFuture future = bootstrap.connect(paramConfig.getServerip(), paramConfig.getServerport());
 		connection.bind(future.channel());
+		LOGGER.info("registry 启动连接 serverport:{}",paramConfig.getServerport());
         future.awaitUninterruptibly();
+        
 		try {
 			future.sync();
 		} catch (InterruptedException e) {
@@ -79,12 +85,20 @@ public class RegistryClient {
     }
 
     
-    public void sendtocenter(RegistryMessage msg) throws Exception {
+    public void invokewithfuture(LenPreMsg msg, ResultFuture<?> resultFuture){
 
-        Channel channel = this.getChannel();
+        Channel channel = null;
+		try {
+			channel = this.getChannel();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			LOGGER.error("找不到可用的channel");
+			e.printStackTrace();
+		}
+        FutureCache.set(channel.eventLoop(), channel, resultFuture);
+        
         channel.writeAndFlush(msg);
-        LOGGER.info("registryclient send msg:{} with channel:{}",msg,channel);
- 
+        LOGGER.info("registryclient send msg:{} with future:{}",msg,resultFuture);
         
     }
 
@@ -95,10 +109,10 @@ public class RegistryClient {
     }
 
 
-	public void discover(String servicename) throws Exception {
-		RegistryMessage msg = new RegistryMessage(new Header(1, Header.REGISTRY_DISCOVER), (Object)servicename);
+	/*public void discover(RegDiscover reg_dis) throws Exception {
+		LenPreMsg msg = new LenPreMsg(Header.reg_discover,1,reg_dis);
 		Channel channel = this.getChannel();
         channel.writeAndFlush(msg);
-        LOGGER.info("registryclient send msg:{} with channel:{}",msg,channel);
-	}
+        LOGGER.info("registryclient send discover msg:{} with channel:{}",msg,channel);
+	}*/
 }

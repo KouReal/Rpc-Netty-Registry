@@ -8,7 +8,8 @@ import springutils.SpringContextStatic;
 
 @SpringBootApplication
 @ComponentScan(basePackages={"testregistryserver","RegistryServer","RegistryParamConfigUtil","MessageUtils","springutils"})
-public class app {
+public class app{
+	
 	public static void main(String[] args) {
 		SpringApplication.run(app.class, args);
 		

@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import RegistryThreadUtil.NamedThreadFactory;
-import TokenUtils.Token;
 import TokenUtils.TokenCache;
+import protocolutils.Token;
 
 @Component("tokenTask")
 public class TokenTask {

@@ -25,6 +25,9 @@ public class BaseMapper {
 	}
 	
 	public SqlSession getSqlSession(){
+		if(sqlSessionFactory==null){
+			init();
+		}
 		return sqlSessionFactory.openSession();
 	}
 	

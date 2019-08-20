@@ -2,7 +2,7 @@ package RpcClient;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import net.bytebuddy.agent.builder.AgentBuilder.CircularityLock.Default;
+import springutils.SpringContextStatic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,20 +13,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import configutils.Uniformconfig;
+import protocolutils.NormalConfig;
 import exceptionutils.RpcServiceDisconnectException;
 
-/**
- * @author jsj
- * @date 2018-10-24
- */
 public class Connection {
 
     private Channel channel;
     private ReentrantReadWriteLock channel_rwlock; 
     private ReentrantReadWriteLock thread_rwlock;
 
-    public static final int DEFAULT_RECONNECT_TRY = 20;
-    public static final int DEFAULT_CONNECT_TIMEOUT = 3000;
+    public static int DEFAULT_RECONNECT_TRY = 20;
+    public static int DEFAULT_CONNECT_TIMEOUT = 3000;
     public static Logger LOGGER = LoggerFactory.getLogger(Connection.class);
     private int count;
 
@@ -34,6 +32,7 @@ public class Connection {
     private int targetPort;
     private Bootstrap bootstrap;
     private List<Thread> waitingthreads;
+    private Uniformconfig uniformconfig;
 
     public Connection(String targetIP, int targetPort, Bootstrap bootstrap) {
         this.targetIP = targetIP;
@@ -42,6 +41,9 @@ public class Connection {
         this.channel_rwlock = new ReentrantReadWriteLock();
         this.thread_rwlock = new ReentrantReadWriteLock();
         this.waitingthreads = new ArrayList<Thread>();
+        this.uniformconfig = ((NormalConfig)SpringContextStatic.getBean("normalConfig")).getUniformconfig();
+        DEFAULT_RECONNECT_TRY = uniformconfig.getClientReconnectTry();
+        DEFAULT_CONNECT_TIMEOUT = uniformconfig.getClientConnectTimeout();
     }
 
     public Connection() {
@@ -49,16 +51,16 @@ public class Connection {
 
     public Channel getChannel() throws RpcServiceDisconnectException{
     	if(count>DEFAULT_RECONNECT_TRY){
-    		LOGGER.debug("连续重连次数超过{}次，服务器关闭了，不再生成channel",DEFAULT_RECONNECT_TRY);
+    		LOGGER.info("连续重连次数超过{}次，服务器关闭了，不再生成channel",DEFAULT_RECONNECT_TRY);
     	}
     	Channel ch = Channel();
     	if(ch!=null){
-    		LOGGER.debug("当前线程:{}找到了不为空的channel",Thread.currentThread().toString());
+    		LOGGER.info("当前线程:{}找到了不为空的channel",Thread.currentThread().toString());
     		return ch; 
     	}else{
     		try{
     			thread_rwlock.writeLock().lock();
-    			LOGGER.debug("当前线程:{}进入wait等待channel队列,最多等待{}毫秒",Thread.currentThread().toString(),DEFAULT_CONNECT_TIMEOUT*5);
+    			LOGGER.info("当前线程:{}进入wait等待channel队列,最多等待{}毫秒",Thread.currentThread().toString(),DEFAULT_CONNECT_TIMEOUT*5);
     			ch = Channel();
     			if(ch!=null)return ch;
     			
@@ -68,13 +70,13 @@ public class Connection {
     		}
     		long nanos = TimeUnit.MILLISECONDS.toNanos(DEFAULT_CONNECT_TIMEOUT*5);
     		LockSupport.parkNanos(Thread.currentThread(), nanos);
-    		LOGGER.debug("当前线程:{}被eventloop从waitchannel队列唤醒,然后查channel是否更新",Thread.currentThread().toString());
+    		LOGGER.info("当前线程:{}被eventloop从waitchannel队列唤醒,然后查channel是否更新",Thread.currentThread().toString());
     		ch = Channel();
     		if(ch!=null){
-    			LOGGER.debug("当前线程:{}经过等待之后等到了不为null的channel:{}",Thread.currentThread().toString(),ch);
+    			LOGGER.info("当前线程:{}经过等待之后等到了不为null的channel:{}",Thread.currentThread().toString(),ch);
     			return ch;
     		}else{
-    			LOGGER.debug("当前线程:{}经过等待之后也没有等到能用的channel",Thread.currentThread().toString());
+    			LOGGER.info("当前线程:{}经过等待之后也没有等到能用的channel",Thread.currentThread().toString());
     			String erromsg = "调用客户端的业务线程遭遇远程服务若干次掉线异常："+Thread.currentThread().toString();
     			throw new RpcServiceDisconnectException(erromsg);
     		}
@@ -83,9 +85,9 @@ public class Connection {
     public Channel Channel() {
     	
     	try{
-    		LOGGER.debug("thread:{} in Connection.getChannel trying readlock",
+    		LOGGER.info("thread:{} in Connection.getChannel trying readlock",
     				Thread.currentThread().toString());
-    		channel_rwlock.readLock();
+    		channel_rwlock.readLock().lock();
     		
     		return channel;
     	}finally{
@@ -95,10 +97,10 @@ public class Connection {
 
     public void unbind() {
     	try{
-    		LOGGER.debug("thread:{} unbind channel:{} Connection",
-    				Thread.currentThread().toString(),channel);
+    		LOGGER.info("thread:{} unbind channel:{} Connection",
+    				Thread.currentThread(),this.channel);
     		channel_rwlock.writeLock().lock();
-    		channel=null;
+    		this.channel=null;
     		count=0;
     	}finally{
     		channel_rwlock.writeLock().unlock();
@@ -107,6 +109,7 @@ public class Connection {
     }
 
     public void bind(Channel channel) {
+    	LOGGER.info("thread:{} bind channel:{}",Thread.currentThread(),channel);
     	try{
     		channel_rwlock.writeLock().lock();
     		this.channel = channel;

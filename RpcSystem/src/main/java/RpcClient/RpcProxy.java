@@ -1,30 +1,25 @@
 package RpcClient;
 
-
-
-
-import MessageUtils.RpcRequest;
-import RegistryClient.ConfigFuture;
-import RegistryClient.DiscoverFuture;
 import RegistryClient.RegistryClient;
-import RpcTrans.RpcFuture;
-import configutils.NormalConfig;
+import asyncutils.ResultFuture;
 import exceptionutils.RpcErrorException;
-import io.netty.channel.ConnectTimeoutException;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
+import protocolutils.RegDiscover;
+import protocolutils.RpcRequest;
+import protocolutils.RpcResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.PostConstruct;
 
 
 
 @Component("rpcProxy")
-@DependsOn(value={"registryClient","discoverFuture"})
+//@DependsOn(value={"registryClient","discoverFuture","normalConfig"})
 public class RpcProxy {
     private static final Logger LOGGER = LoggerFactory.getLogger(RpcProxy.class);
 
@@ -42,10 +37,6 @@ public class RpcProxy {
     
     @Autowired
     private RegistryClient registryClient; 
-    
-    @Autowired
-    private DiscoverFuture discoverFuture;
-
  
     /**
      * 异步调用
@@ -56,26 +47,20 @@ public class RpcProxy {
      * @return
      * @throws Exception
      */
-    public RpcFuture call(RpcRequest rpcRequest)throws RpcErrorException{
+    public ResultFuture<RpcResponse> call(RpcRequest rpcRequest)throws RpcErrorException{
     	
     	String servicename = rpcRequest.getServicename();
     	
         
         String serviceAddress = findServiceAddress(servicename);
         //调用异步方法
-        RpcFuture future=null;
+        ResultFuture<RpcResponse> future = null;
         RpcClient client=null;
-        try {
-            // 创建 RPC 客户端对象并发送 RPC 请求
-            client = this.getRpcClient(servicename, serviceAddress);
-            
-            future = client.invokeWithFuture(rpcRequest);
-        } catch (ConnectTimeoutException c) {
-        	LOGGER.info("调用服务{}超时,client:{}",servicename,client);
-            throw new RpcErrorException("调用服务超时");
-        } catch (Exception r) {
-            throw new RpcErrorException(r.getMessage());
-        }
+        // 创建 RPC 客户端对象并发送 RPC 请求
+        client = this.getRpcClient(servicename, serviceAddress);
+        LenPreMsg msg = LenPreMsg.buildsimplemsg(Header.rpc_request, rpcRequest);
+        future = new ResultFuture<>(msg.getMsgid());
+        client.invokeWithFuture(msg, future);
         return future;
     }
 
@@ -121,17 +106,21 @@ public class RpcProxy {
             throw new RpcErrorException("registryClient isnot exists.");
         }
        
-            try {
-				registryClient.discover(servicename);
-				serviceAddress = discoverFuture.get();
+	   try {
+	   		RegDiscover regDiscover = new RegDiscover(servicename, null);
+	   		LenPreMsg msg = LenPreMsg.buildsimplemsg(Header.reg_discover, regDiscover);
+	   		ResultFuture<RegDiscover> resultFuture = new ResultFuture<>(msg.getMsgid());
+	   		registryClient.invokewithfuture(msg, resultFuture);
+			RegDiscover result = resultFuture.get();
+			serviceAddress =  result.getServiceaddr();
+	
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				
-				e.printStackTrace();
-				return null;
-			}
-        
+			e.printStackTrace();
+			return null;
+		}
+	 
         LOGGER.info("discover service: {} => {}", servicename, serviceAddress);
         if(serviceAddress==null||serviceAddress.equals("")){
         	throw new RpcErrorException(servicename+"服务不存在");

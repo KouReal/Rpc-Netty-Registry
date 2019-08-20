@@ -30,6 +30,9 @@ public class ServiceProxy implements InvocationHandler{
 	private Map<String, Object> beanmap = new HashMap<String, Object>();
 	private Map<String, Object> proxymap = new HashMap<String, Object>();
 	private ThreadLocal<Object> target = new ThreadLocal<>();
+	
+	//只有一个服务
+	public String servicename = null;
 
 	@Autowired
 	private TokenCache tokenCache;
@@ -49,6 +52,7 @@ public class ServiceProxy implements InvocationHandler{
 	            myService = serviceBean.getClass().getAnnotation(MyService.class);
 	            //service接口名称
 	            serviceName = myService.value();
+	            servicename = serviceName;
 	            logger.info("bean map add:{}->{}",serviceName,serviceBean);
 	            beanmap.put(serviceName, serviceBean);
 		 }
@@ -96,9 +100,8 @@ public class ServiceProxy implements InvocationHandler{
 			logger.info("tokenid = {}",tokenid);
 			boolean state = tokenCache.authtoken(tokenid);
 			if(!state){
-				JSONObject res = new JSONObject();
-				res.put("result", "验证token身份失败");
-				return res.toJSONString();
+				Method onauthfail = target.get().getClass().getMethod("onauthfail");
+				return onauthfail.invoke(target.get());
 			}
 		}
 		logger.info("annotation is null,Thread:{}",Thread.currentThread());

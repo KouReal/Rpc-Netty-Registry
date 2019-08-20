@@ -3,27 +3,25 @@ package RpcClient;
 
 
 import io.netty.bootstrap.Bootstrap;
+import static java.util.Arrays.asList;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
 import rpcutils.NamedThreadFactory;
+
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import MessageUtils.Header;
-import MessageUtils.RpcMessage;
-import MessageUtils.RpcRequest;
-import RpcTrans.RpcFuture;
-import RpcTrans.RpcFutureCache;
+import asyncutils.FutureCache;
+import asyncutils.ResultFuture;
+import exceptionutils.RpcServiceDisconnectException;
 
 
-/**
- * RPC 客户端（用于发送 RPC 请求,对于同一目标IP+目标端口，RpcClient唯一）
- *
- * @author jsj
- * @date 2018-10-10
- */
+
 public class RpcClient {
     private final String targetIP;
     private final int targetPort;
@@ -46,7 +44,7 @@ public class RpcClient {
     private static Bootstrap bootstrap = new Bootstrap().group(group).channel(NioSocketChannel.class)
             //禁用nagle算法
             .option(ChannelOption.TCP_NODELAY, true);
-
+    private static List<Header> protocol_whitelitst = asList(Header.heart_beat,Header.rpc_response);
     
 
     public RpcClient(String targetIP, int targetPort) {
@@ -58,8 +56,9 @@ public class RpcClient {
     private void init() {
         connection = new Connection(targetIP, targetPort, bootstrap);
         ReConnectionListener reConnectionListener = new ReConnectionListener(connection);
-        RpcClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener));
+        RpcClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelitst));
         ChannelFuture future = bootstrap.connect(targetIP,targetPort);
+        connection.bind(future.channel());
 		future.awaitUninterruptibly();
 		try {
 			future.sync();
@@ -77,31 +76,24 @@ public class RpcClient {
      * @return
      * @throws Exception
      */
-    public RpcFuture invokeWithFuture(RpcRequest rpcrequest) throws Exception {
-        //注册到futureMap
-        
-        RpcFuture future = new RpcFuture(rpcrequest.getRequestId());
+    public void invokeWithFuture(LenPreMsg msg, ResultFuture<?> future){
         Channel channel = this.getChannel();
-        RpcFutureCache.set(channel.eventLoop(), channel, future);
- 
-        try {
-            //写请求并直接返回
-        	
-        	RpcMessage rpcMessage = new RpcMessage(new Header(1, Header.RPC_REQUEST), (Object)rpcrequest);
-        	LOGGER.info("rpcclient invokewithfuture rpcmessage:{},with channel:{}", rpcMessage,channel);
-            channel.writeAndFlush(rpcMessage);
-            
-        } catch (Exception e) {
-        	future.cancel(true);
-        	RpcFutureCache.remove(channel.eventLoop(),channel,future);
-        	
-            throw e;
-        }
-        return future;
+        
+        //注册到futureMap
+        FutureCache.set(channel.eventLoop(), channel, future);
+        //写请求并直接返回
+        LOGGER.info("rpcclient invokewithfuture lenpremsg:{},with future:{}", msg,future);
+        channel.writeAndFlush(msg);
     }
 
-    public Channel getChannel() throws Exception {
-        Channel channel = connection.getChannel();
+    public Channel getChannel(){
+        Channel channel = null;
+		try {
+			channel = connection.getChannel();
+		} catch (RpcServiceDisconnectException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
         return channel;
     }

@@ -18,6 +18,10 @@ public class Customer {
      * @mbggenerated
      */
     private Long id;
+    
+    public Customer(){
+    	super();
+    }
 
     public Customer(Long id, String userName, String password, String country, String tel, EnableCard enablecard) {
 		super();

@@ -6,10 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import MessageUtils.Serviceconfig;
-import MessageUtils.Ssoconfig;
-import MessageUtils.Uniformconfig;
-import configutils.NormalConfig;
+import configutils.CenterConfig;
+import configutils.ServiceConfig;
+import configutils.SsoConfig;
+import configutils.Uniformconfig;
 
 @Configuration
 
@@ -19,10 +19,10 @@ public class RegistryConfiguration {
 	private Uniformconfig ufc;
 	
 	@Autowired
-	private Serviceconfig sec;
+	private ServiceConfig sec;
 	
 	@Autowired
-	private Ssoconfig soc;
+	private SsoConfig soc;
 	/*//very lazy
 	@Autowired
 	private ChannelCache channelCache;
@@ -30,11 +30,11 @@ public class RegistryConfiguration {
 	@Autowired
 	private ServiceAddrCache serviceAddrCache;*/
 	
-	@Bean(name="normalConfig")
-	public NormalConfig normalConfig(){
+	@Bean(name="centerConfig")
+	public CenterConfig centerConfig(){
 		logger.info("ufc:{}",ufc);
 		logger.info("sec:{}",sec);
 		logger.info("soc:{}",soc);
-		return new NormalConfig(ufc,sec,soc);
+		return new CenterConfig(ufc,sec,soc);
 	}
 }

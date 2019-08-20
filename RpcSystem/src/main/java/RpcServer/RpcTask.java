@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import com.alibaba.fastjson.JSONObject;
 
-import MessageUtils.RpcRequest;
-import MessageUtils.RpcResponse;
 import exceptionutils.RpcErrorException;
 import io.netty.channel.ChannelHandlerContext;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
+import protocolutils.RpcRequest;
+import protocolutils.RpcResponse;
 import reflectionutils.ServiceProxy;
 import springutils.SpringContextStatic;
 
@@ -17,30 +19,35 @@ public class RpcTask implements Runnable {
 	
 
     private ChannelHandlerContext ctx;
-    private RpcRequest request;
+    private LenPreMsg msg;
     
     private ServiceProxy serviceProxy;
 
-    public RpcTask(ChannelHandlerContext ctx, RpcRequest request) {
+    public RpcTask(ChannelHandlerContext ctx, LenPreMsg msg) {
         this.ctx = ctx;
-        this.request = request;
+        this.msg = msg;
         this.serviceProxy = (ServiceProxy) SpringContextStatic.getBean("serviceProxy");
     }
 
     @Override
     public void run() {
-        // 创建并初始化 RPC 响应对象
-        RpcResponse response = new RpcResponse();
-        response.setRequestid(request.getRequestId());
-        logger.info("收到rpcrequest:{}",request);
+    	RpcRequest rpcRequest = null;
+    	if(msg.getHeader()==Header.rpc_request){
+    		rpcRequest = (RpcRequest) msg.getBody();
+    	}
+        logger.info("rpctask收到rpcrequest:{}",rpcRequest);
             //调用服务，获取服务结果
-            String serviceResult = this.handle(request);
-            //结果添加到响应
-            response.setContent(serviceResult);
-      
-        // 写入 RPC 响应对象
-            logger.info("得到rpcresponse:{}",response);
-        ctx.writeAndFlush(response);
+            RpcResponse rpcResponse = this.handle(rpcRequest);
+            if(rpcResponse==null){
+            	logger.info("处理得到的rpcresponse为null,request为：{}",rpcRequest);
+            	rpcResponse = new RpcResponse(RpcResponse.FAILURE, "服务发生异常", "null rpcresponse");
+            }
+            // 写入 RPC 响应对象
+            logger.info("得到rpcresponse:{}",rpcResponse);
+            LenPreMsg resultmsg = new LenPreMsg(Header.rpc_response, msg.getMsgid(), 1, rpcResponse);
+//            RpcMessage msg = new RpcMessage(new Header(1, Header.RPC_RESPONSE), (Object)rpcResponse);
+            logger.info("构造lenpremsg:{}",resultmsg);
+            ctx.writeAndFlush(resultmsg);
     }
 
     /**
@@ -50,11 +57,10 @@ public class RpcTask implements Runnable {
      * @return
      * @throws Exception
      */
-    private String handle(RpcRequest request) {
+    private RpcResponse handle(RpcRequest request) {
         // 获取服务实例对象
         String serviceName = request.getServicename();
        
-        //利用反射调用服务
         String methodName = request.getMethodName();
         String paramjsonstr = request.getParamjsonstr();
         JSONObject params = JSONObject.parseObject(paramjsonstr);
@@ -66,13 +72,14 @@ public class RpcTask implements Runnable {
 			// TODO Auto-generated catch block
 			logger.error("调用服务：{},方法：{}出错，错误信息：{}",serviceName,methodName,e.getMessage());
 			e.printStackTrace();
-			return null;
+			return new RpcResponse(RpcResponse.FAILURE, "服务发生异常"+e.getMessage(), e.getMessage());
+			
 		}
         /*Class<?>[] parameterTypes = request.getParameterTypes();
         Object[] parameters = request.getParameters();
         return this.invokeByReflect(serviceBean, methodName, parameterTypes, parameters);
     */
-        return (String)result;
+        return (RpcResponse)result;
     }
 
 }

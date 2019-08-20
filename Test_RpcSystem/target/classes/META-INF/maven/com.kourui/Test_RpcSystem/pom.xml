@@ -68,5 +68,15 @@
 			<artifactId>RpcSystem</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.kourui</groupId>
+			<artifactId>RegistryCenter</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.kourui</groupId>
+			<artifactId>HttpServer</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>

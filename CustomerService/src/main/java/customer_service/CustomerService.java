@@ -3,10 +3,13 @@ package customer_service;
 import com.alibaba.fastjson.JSONObject;
 
 import annotationutils.AuthToken;
+import protocolutils.RpcResponse;
 
 public interface CustomerService {
-	public String regist(JSONObject params);
-	public String login(JSONObject params);
+	public RpcResponse regist(JSONObject params);
+	public RpcResponse login(JSONObject params);
 	@AuthToken
-	public String showpersonalinfo(JSONObject params);
+	public RpcResponse showpersonalinfo(JSONObject params);
+	
+	public RpcResponse onauthfail();
 }

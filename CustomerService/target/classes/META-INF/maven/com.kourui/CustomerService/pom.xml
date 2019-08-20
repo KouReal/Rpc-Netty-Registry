@@ -65,7 +65,16 @@
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
 		</dependency>
+		
 		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+		</dependency>
+		<!-- <dependency>
 			<groupId>io.protostuff</groupId>
 			<artifactId>protostuff-core</artifactId>
 		</dependency>
@@ -76,7 +85,7 @@
 		<dependency>
 			<groupId>io.protostuff</groupId>
 			<artifactId>protostuff-api</artifactId>
-		</dependency>
+		</dependency> -->
 		<dependency>
 			<groupId>com.kourui</groupId>
 			<artifactId>CommonUtils</artifactId>
@@ -90,6 +99,11 @@
 		<dependency>
 			<groupId>com.kourui</groupId>
 			<artifactId>dao</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.kourui</groupId>
+			<artifactId>RpcSystem</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

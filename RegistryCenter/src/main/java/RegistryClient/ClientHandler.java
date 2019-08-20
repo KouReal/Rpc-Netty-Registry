@@ -4,43 +4,41 @@ package RegistryClient;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
+import protocolutils.Token;
 import springutils.SpringContextStatic;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import MessageUtils.Header;
-import MessageUtils.RegistryMessage;
-import TokenUtils.Token;
-import configutils.NormalConfig;
+import asyncutils.FutureCache;
+import asyncutils.ResultFuture;
+
 
 
 
 
 @ChannelHandler.Sharable
-public class ClientHandler extends SimpleChannelInboundHandler<RegistryMessage> {
+public class ClientHandler extends SimpleChannelInboundHandler<LenPreMsg> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
     
-    private ConfigFuture configFuture = (ConfigFuture) SpringContextStatic.getBean("configFuture");
     private TokenTask tokenTask = (TokenTask) SpringContextStatic.getBean("tokenTask");
    
 
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RegistryMessage msg) throws Exception {
-        byte headertype = msg.getHeader().getType();
-    	if(headertype==Header.REGISTRY_NORMALCONFIG){
-    		LOGGER.info("registryclient 接收到NormalConfig");
-        	configFuture.done((NormalConfig)msg.getBody());
-        }else if(headertype==Header.REGISTRY_TOKEN){
-        	LOGGER.info("registryclient 接收到Token");
+    protected void channelRead0(ChannelHandlerContext ctx, LenPreMsg msg) throws Exception {
+        
+    	Header protocoltype = msg.getHeader();
+    	if(protocoltype==Header.reg_tokenconfig){
+    		LOGGER.info("registryclient 接收到Token");
         	tokenTask.settoken((Token)msg.getBody());
-        }else if(headertype==Header.REGISTRY_DISCOVER_REPLY){
-        	
-        }else{
-        	LOGGER.info("registryclient收到不明确的响应消息：{}",msg);
-        }
+        	return ;
+    	}
+    	ResultFuture<?> resultFuture = FutureCache.getfuture(ctx.channel(), msg.getMsgid());
+    	resultFuture.done(msg.getBody());
     }
 
     @Override

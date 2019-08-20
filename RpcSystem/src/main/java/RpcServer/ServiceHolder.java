@@ -1,4 +1,4 @@
-package RpcServer;
+/*package RpcServer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,15 +23,14 @@ import configutils.ServiceRegist;
 import springutils.SpringContextUtil;
 
 @Component("serviceHolder")
-@DependsOn("registryClient")
 public class ServiceHolder{
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServiceHolder.class);
-/*	
+	
 	@Value("${rpcserver.ip}")
 	private String serverip;
 	
 	@Value("${rpcserver.port}")
-	private int serverport;*/
+	private int serverport;
 	
 	@Autowired
 	private RegistryClient registryClient;
@@ -55,13 +54,13 @@ public class ServiceHolder{
 
 
 
-	/**
+	*//**
      * 注册所有服务
-     */
+     *//*
     
 	@PostConstruct
 	public void registService() {
-    	
+    	LOGGER.info("serviceholder start ...");
     	ApplicationContext applicationContext = springContextUtil.getApplicationContext();
     	beanmap = applicationContext.getBeansWithAnnotation(MyService.class);
     	
@@ -80,9 +79,9 @@ public class ServiceHolder{
             serviceName = myService.value();
             setServicename(serviceName);
             
-            /*//注册
+            //注册
             this.serviceRegistry.register(serviceName, this.addr);
-            serviceInstanceMap.put(serviceName, serviceBean);*/
+            serviceInstanceMap.put(serviceName, serviceBean);
             String addr = "127.0.0.1:xx";
             LOGGER.info("register service: {} => {}", serviceName, addr);
             Header header = new Header(1, Header.REGISTRY_SERVICE);
@@ -111,3 +110,4 @@ public class ServiceHolder{
 	}
 	
 }
+*/
