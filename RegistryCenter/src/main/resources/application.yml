@@ -11,9 +11,11 @@ rpcconfig:
             #客户端连接超时时间（单位：毫秒
             client-connect-timeout: 5000
             #token最大生命期(单位：毫秒)
-            token-life: 10000
-            client-write-idle: 3000
-            server-read-idle: 8000
+            token-life: 60000
+            client-write-idle: 5000
+            server-read-idle: 10000
+            #展示心跳信息
+            show-heartbeat: false
         serviceaddrs:
             #自定义配置的服务数量不确定
             - name: customer
@@ -22,7 +24,7 @@ rpcconfig:
             - name: account
               ip: 127.0.0.1
               port: 8002
-            - name: dao
+            - name: tradeinfo
               ip: 127.0.0.1
               port: 8003
             - name: testsso
@@ -33,11 +35,11 @@ rpcconfig:
               port: 8005
     ssogroups:
         - leader-service: customer
-          login-addr: /customer/login
+          login-addr: http://127.0.0.1:8005/bank/customer/login
           visitor-name: httpserver
           group-members:
            - account
-           - testssos
+           - tradeinfo
 ---
 spring:
     profiles: test

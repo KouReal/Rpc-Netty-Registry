@@ -5,9 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
-@ComponentScan(value={"account_service","RpcServer","springutils","RegistryClient","TokenUtils","reflectionutils"})
-public class appaccount {
+@ComponentScan(value={"tradeinfo_service","RpcServer","springutils","RegistryClient","TokenUtils","reflectionutils"})
+public class apptradeinfo {
 	public static void main(String[] args) {
-		SpringApplication.run(appaccount.class, args);
+		SpringApplication.run(apptradeinfo.class, args);
 	}
 }

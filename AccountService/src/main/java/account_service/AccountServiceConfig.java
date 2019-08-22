@@ -1,4 +1,4 @@
-package tradeinfo_service;
+package account_service;
 
 
 import org.slf4j.Logger;
@@ -15,10 +15,10 @@ import protocolutils.LenPreMsg;
 import protocolutils.NormalConfig;
 import protocolutils.RegService;
 
-@Configuration("customerServiceConfig")
+@Configuration("accountServiceConfig")
 @DependsOn("registryClient")
-public class CustomerServiceConfig {
-	Logger logger = LoggerFactory.getLogger(CustomerServiceConfig.class);
+public class AccountServiceConfig {
+	Logger logger = LoggerFactory.getLogger(AccountServiceConfig.class);
 	@Autowired
 	private RegistryClient registryClient;
 		
@@ -27,7 +27,7 @@ public class CustomerServiceConfig {
 //	@Order(1)
 	public NormalConfig normalConfig(){
 		logger.info("registryclient:{}",registryClient);
-		RegService regService = new RegService("customer", "127.0.0.1:xx");
+		RegService regService = new RegService("account", "127.0.0.1:xx");
 		LenPreMsg msg = LenPreMsg.buildsimplemsg(Header.reg_addservice, regService);
 		ResultFuture<NormalConfig> future = new ResultFuture<>(msg.getMsgid());
 		try {

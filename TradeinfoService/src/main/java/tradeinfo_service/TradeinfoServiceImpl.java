@@ -41,8 +41,8 @@ import springutils.SpringContextStatic;
 import sqlsessionmanage.BaseMapper;
 import typehandler.EnableCard;
 
-@MyService(value = "account")
-@Component("account")
+@MyService(value = "tradeinfo")
+@Component("tradeinfo")
 @DependsOn(value={"registryClient","tokenCache","normalConfig"})
 public class TradeinfoServiceImpl extends BaseMapper implements TradeinfoService {
 	public static Logger logger = LoggerFactory.getLogger(TradeinfoServiceImpl.class);	
@@ -67,43 +67,29 @@ public class TradeinfoServiceImpl extends BaseMapper implements TradeinfoService
 			resultjson.put("error", "此Token没有附加用户信息");
 			return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
 		}
-		getcardidbycustomerid(customerid)
-		String balance = (String)params.get("balance");
-		String tokenid = (String)params.get("tokenid");
-		Token token = tokenCache.gettokenbyid(tokenid);
-		JSONObject resultjson = new JSONObject();
-		if(token == null){
-			logger.error("openaccount 根据tokenid找到的token为null"); 
-			return new RpcResponse(RpcResponse.FAILURE, "openaccount 根据tokenid找到的token为null", null);
-		}
-		Long customerid = Long.valueOf(token.getAttachinfo().get("customerid"));
 		Customer customer = getcustomerbyid(customerid);
 		Long cardid = getcardidbycustomerid(customerid);
 		if(cardid==null){
-			logger.info("当前customer:{}没有创建银行卡,即将创建银行卡",customerid);
-			SqlSession session = getSqlSession();
-			try {
-				CardinfoMapper cardinfoMapper = session.getMapper(CardinfoMapper.class);
-				Cardinfo cardinfo = new Cardinfo(null, password, Long.valueOf(balance), new Date(), customer.getUserName());
-				cardinfoMapper.insert(cardinfo);
-				resultjson.put("result", "开户成功");
-				resultjson.put("cardinfo", cardinfo);
-				session.commit();
-				return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
-			} catch (Exception e) {
-				session.rollback();
-				resultjson.put("result", "开户失败");
-				resultjson.put("error", e.getMessage());
-				return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(),null);
-			}finally {
-				session.close();
-			}
-		}else{
-			logger.info("当前customer:{}已经创建银行卡",customerid);
-			Cardinfo cardinfo = getcardinfobyid(cardid);
-			resultjson.put("cardinfo", cardinfo);
-			return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
+			resultjson.put("customer", customer);
+			resultjson.put("error", "此用户没有创建银行卡");
+			return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
 		}
+		Cardinfo cardinfo = getcardinfobyid(cardid);
+		SqlSession sqlSession = getSqlSession();
+		try {
+			TradeinfoMapper tradeinfoMapper = sqlSession.getMapper(TradeinfoMapper.class);
+			List<Tradeinfo> tradeinfos = tradeinfoMapper.selectAllTradeInfoById(cardid);
+			resultjson.put("customer", customer);
+			resultjson.put("cardinfo", cardinfo);
+			resultjson.put("交易记录", tradeinfos);
+			return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
+		}catch(Exception e){
+			resultjson.put("error", e.getMessage());
+			return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
+		}finally {
+			sqlSession.close();
+		}
+		
 		
 	}
 	
@@ -145,99 +131,6 @@ public class TradeinfoServiceImpl extends BaseMapper implements TradeinfoService
 			session.close();
 		}
 	}
-	@Override
-	@AuthToken
-	public RpcResponse transferaccount(JSONObject params){
-		Long payer = Long.valueOf((String)params.get("payer"));
-		Long receiver = Long.valueOf((String)params.get("receiver"));
-		String password = (String)params.get("password");
-		Long amount = Long.valueOf((String)params.get("amount"));
-		JSONObject resultjson = new JSONObject();
-		SqlSession sqlSession = getSqlSession();
-		try{
-			CardinfoMapper cardinfoMapper = sqlSession.getMapper(CardinfoMapper.class);
-			TradeinfoMapper tradeinfoMapper = sqlSession.getMapper(TradeinfoMapper.class);
-			CardTradeMapper cardTradeMapper = sqlSession.getMapper(CardTradeMapper.class);
-			CardinfoExample cardinfoExample = new CardinfoExample();
-			CardinfoExample.Criteria  cardinfocriteria= cardinfoExample.createCriteria();
-			cardinfocriteria.andIdEqualTo(payer);
-			cardinfocriteria.andPasswordEqualTo(password);
-			List<Cardinfo> cardinfolist = cardinfoMapper.selectByExample(cardinfoExample);
-			if(cardinfolist==null||cardinfolist.size()==0){
-				resultjson.put("error", "卡号或密码错误");
-				return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
-			}
-			
-			Cardinfo payercard = cardinfoMapper.selectByPrimaryKey(payer);
-			Long paybalance = payercard.getBalance();
-			if(paybalance<amount){
-				resultjson.put("error", "余额不足");
-				return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
-			}
-			Cardinfo receivercard = cardinfoMapper.selectByPrimaryKey(receiver);
-			if(receiver==null){
-				resultjson.put("error", "对方账户不存在");
-				return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
-			}
-			Long receiverbalance = receivercard.getBalance();
-			payercard.setBalance(paybalance-amount);
-			receivercard.setBalance(receiverbalance+amount);
-			
-			cardinfoMapper.updateByPrimaryKeySelective(payercard);
-			cardinfoMapper.updateByPrimaryKeySelective(receivercard);
-			
-			Tradeinfo tradeinfo = new Tradeinfo();
-			tradeinfo.setPayer(payer);
-			tradeinfo.setReceiver(receiver);
-			tradeinfo.setAmount(amount);
-			tradeinfo.setCreateTime(new Date());
-			long tradeId = tradeinfoMapper.insert(tradeinfo);
-			//tradeinfoMapper.insert(tradeinfo);
-			
-			CardTrade cardTrade1 = new CardTrade();
-			cardTrade1.setCardId(payer);
-			cardTrade1.setTradeId(tradeId);
-			cardTrade1.setTradeType(0);
-			cardTradeMapper.insert(cardTrade1);
-			
-			CardTrade cardTrade2 = new CardTrade();
-			cardTrade2.setCardId(receiver);
-			cardTrade2.setTradeId(tradeId);
-			cardTrade2.setTradeType(1);
-			cardTradeMapper.insert(cardTrade2);
-			sqlSession.commit();
-			resultjson.put("result", "转账成功");
-			resultjson.put("银行卡信息", payercard);
-			resultjson.put("交易信息", tradeinfo);
-			return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
-		}catch(Exception e){
-			sqlSession.rollback();
-			resultjson.put("error", e.getMessage());
-			return new RpcResponse(RpcResponse.FAILURE, resultjson.toJSONString(), null);
-		}finally {
-			sqlSession.close();
-		}
-	}
-	@Override
-	@AuthToken
-	public RpcResponse showcardinfo(JSONObject params){
-		String tokenid = (String)params.get("tokenid");
-		Token token = tokenCache.gettokenbyid(tokenid);
-		Long customerid = Long.valueOf(token.getAttachinfo().get("customerid"));
-		Long cardid = getcardidbycustomerid(customerid);
-		JSONObject resultjson = new JSONObject();
-		if(cardid==null){
-			resultjson.put("result", "当前用户没有银行卡");
-			Customer customer = getcustomerbyid(customerid);
-			resultjson.put("用户信息", customer);
-			return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
-		}else{
-			Cardinfo cardinfo = getcardinfobyid(cardid);
-			resultjson.put("cardinfo", cardinfo);
-			return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
-		}
-	}
-	
 	
 	@Override
 	public RpcResponse onauthfail(){

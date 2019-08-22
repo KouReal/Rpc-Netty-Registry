@@ -18,6 +18,7 @@ public class Uniformconfig implements Serializable{
 	private int tokenLife;
 	private int clientWriteIdle;
 	private int serverReadIdle;
+	private boolean showHeartBeat;
 	public int getClientReconnectTry() {
 		return clientReconnectTry;
 	}
@@ -52,7 +53,13 @@ public class Uniformconfig implements Serializable{
 	public String toString() {
 		return "uniformconfig [clientReconnectTry=" + clientReconnectTry + ", clientConnectTimeout="
 				+ clientConnectTimeout + ", tokenLife=" + tokenLife + ", clientWriteIdle=" + clientWriteIdle
-				+ ", serverReadIdle=" + serverReadIdle + "]";
+				+ ", serverReadIdle=" + serverReadIdle + ", showheartbeat="+showHeartBeat+"]";
+	}
+	public boolean isShowHeartBeat() {
+		return showHeartBeat;
+	}
+	public void setShowHeartBeat(boolean showHeartBeat) {
+		this.showHeartBeat = showHeartBeat;
 	}
 	
 }

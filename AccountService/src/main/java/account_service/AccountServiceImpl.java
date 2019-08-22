@@ -32,6 +32,7 @@ import pojo.Cardinfo;
 import pojo.CardinfoExample;
 import pojo.Customer;
 import pojo.Tradeinfo;
+import pojo.UserCard;
 import protocolutils.Header;
 import protocolutils.LenPreMsg;
 import protocolutils.NormalConfig;
@@ -46,8 +47,6 @@ import typehandler.EnableCard;
 @DependsOn(value={"registryClient","tokenCache","normalConfig"})
 public class AccountServiceImpl extends BaseMapper implements AccountService {
 	public static Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);	
-	@Autowired
-	private RegistryClient registryClient;
 	@Autowired
 	private TokenCache tokenCache;
 	
@@ -70,17 +69,25 @@ public class AccountServiceImpl extends BaseMapper implements AccountService {
 		Customer customer = getcustomerbyid(customerid);
 		Long cardid = getcardidbycustomerid(customerid);
 		if(cardid==null){
-			logger.info("当前customer:{}没有创建银行卡,即将创建银行卡",customerid);
+			logger.info("当前customer:{}, 没有创建银行卡,即将创建银行卡",customerid);
 			SqlSession session = getSqlSession();
 			try {
 				CardinfoMapper cardinfoMapper = session.getMapper(CardinfoMapper.class);
+				UserCardMapper userCardMapper = session.getMapper(UserCardMapper.class);
 				Cardinfo cardinfo = new Cardinfo(null, password, Long.valueOf(balance), new Date(), customer.getUserName());
 				cardinfoMapper.insert(cardinfo);
+				UserCard userCard = new UserCard();
+				userCard.setCardId(cardinfo.getId());
+				userCard.setCustomerId(customerid);
+				userCardMapper.insert(userCard);
+				
+				
 				resultjson.put("result", "开户成功");
 				resultjson.put("cardinfo", cardinfo);
 				session.commit();
 				return new RpcResponse(RpcResponse.RESOURCE, null, resultjson.toJSONString());
 			} catch (Exception e) {
+				e.printStackTrace();
 				session.rollback();
 				resultjson.put("result", "开户失败");
 				resultjson.put("error", e.getMessage());

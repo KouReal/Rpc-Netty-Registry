@@ -2,6 +2,10 @@ package TokenUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,63 +32,59 @@ public class TokenCache {
 		public static int TOKEN_LIFE = 10000;
 		
 		
-		public static List<Token> tokencache;
+//		public static List<Token> tokencache = new ArrayList<>();
+		public static ConcurrentHashMap<String, Token> tokenmap = new ConcurrentHashMap<>();
 		@PostConstruct
 		public void init(){	
-			this.rwlock = new ReentrantReadWriteLock ();
-			tokencache = new ArrayList<Token>();
+			this.rwlock = new ReentrantReadWriteLock();
 			TOKEN_LIFE = ((NormalConfig)SpringContextStatic.getBean("normalConfig")).getUniformconfig().getTokenLife();
-			ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);  
-	          scheduledThreadPool.schedule(new Runnable() {  
+			Timer timer = new Timer();
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					checkoldtoken();
+				}
+			}, 0, TOKEN_LIFE);
+			/*ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);  
+	        scheduledThreadPool.schedule(new Runnable() {  
 	           public void run() {  
 	            	checkoldtoken();
 	           }  
-	          }, TOKEN_LIFE, TimeUnit.MILLISECONDS);  
+	        }, TOKEN_LIFE, TimeUnit.MILLISECONDS); */ 
 		}
 
 		public Token gettokenbyid(String id){
-			if(tokencache==null||id==null||id.equals("")){
+			if(tokenmap.isEmpty()||id==null||id.equals("")){
 				return null;
 			}
-			for (Token token : tokencache) {
-				if(id.equals(token.getTid())){
-					return token;
-				}
+			try {
+				rwlock.readLock().lock();
+				return tokenmap.get(id);
+			} finally {
+				rwlock.readLock().unlock();
 			}
-			return null;
+			
 		}
 
 		public boolean authtoken(String tokenid){
 //			LOGGER.info("auth token");
-			if(tokenid == null)return false;
+			if(tokenmap.isEmpty()||tokenid == null){
+				return false;
+			}
 			try{
 				rwlock.readLock().lock();
-//				LOGGER.info("get readlock");
-				if(tokencache==null)return false;
-				for(Token token : tokencache){
-					if(tokenid.equals(token.getTid())){
-						return true;
-					}
-				}
-//				LOGGER.info("release readlock");
-				return false;
+				return tokenmap.containsKey(tokenid);
 			}finally{
 				rwlock.readLock().unlock();
 			}	
 		}
 
 		public boolean addtoken(Token token){
-//			LOGGER.info("addtoken, token:{}",token);
-			if(authtoken(token.getTid())){
-//				LOGGER.info("the Token with id={} is already exsists in the {} service",token.getTid());
-				return false;
-			}
+			LOGGER.info("addtoken, token:{}",token);
 			try{
 //				LOGGER.info("try");
 				rwlock.writeLock().lock();
-//				LOGGER.info("get writelock");
-				tokencache.add(token);
-//				LOGGER.info("add with tokenid:{}",token.getTid());
+				tokenmap.put(token.getTid(), token);
 				return true;
 			}finally{
 				rwlock.writeLock().unlock();
@@ -92,13 +92,19 @@ public class TokenCache {
 
 		}
 		public void checkoldtoken(){
+			if(tokenmap.isEmpty()){
+				return;
+			}
 			try{
 				rwlock.writeLock().lock();
-				for(Token token : tokencache){
+				LOGGER.info("tokencache check old token");
+				Token token;
+				for(Map.Entry<String, Token> entry : tokenmap.entrySet()){
+					token = entry.getValue();
 					Long live = System.currentTimeMillis() - token.getCreatetime().getTime();
 					if(live > TOKEN_LIFE){
 						LOGGER.info("tokencache remove old token with id:{}",token.getTid());
-						tokencache.remove(token);
+						tokenmap.remove(token.getTid());
 					}
 				}
 			}finally{

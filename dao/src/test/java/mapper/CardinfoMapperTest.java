@@ -145,6 +145,39 @@ public class CardinfoMapperTest extends BaseMapperTest {
 		}
 	}
 	
+	@Test
+	public void test3(){
+		SqlSession session = getSqlSession();
+		try{
+			CardinfoMapper cardinfoMapper = session.getMapper(CardinfoMapper.class);
+			Cardinfo cardinfo = new Cardinfo(null, "123456", Long.valueOf("100"), new Date(), "trump03");
+			cardinfoMapper.insert(cardinfo);
+			System.out.println(cardinfo.getId());
+			session.commit();
+		}catch(Exception e){
+			session.rollback();
+			
+		}finally{
+			session.close();
+		}
+		
+	}
+	
+	@Test
+	public void test4(){
+		SqlSession session = getSqlSession();
+		try{
+			UserCardMapper userCardMapper = session.getMapper(UserCardMapper.class);
+			Long cardid = userCardMapper.selectCardidByCustomerid(6l);
+			System.out.println(cardid);
+		}catch(Exception e){
+			session.rollback();
+			
+		}finally{
+			session.close();
+		}
+	}
+	
 
 	
 	

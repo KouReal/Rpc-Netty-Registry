@@ -96,8 +96,9 @@ public class HttpMessageUtil {
 		String uri = request.uri();
 		LOGGER.info("parsegetparams:uri:{}", uri);
 		int queryindex = uri.indexOf("?");
+		Map<String, String> parammap = new HashMap<>();
 		if(queryindex>=0){
-			Map<String, String> parammap = new HashMap<>();
+			
 			String quetystr = uri.substring(queryindex+1, uri.length());
 			LOGGER.info("get?paramastr:{}",quetystr);
 			String[] parmas = quetystr.split("&");
@@ -110,10 +111,8 @@ public class HttpMessageUtil {
 				}
 				parammap.put(kvs[0], kvs[1]);
 			}
-			return parammap;
-		}else{
-			return null;
 		}
+		return parammap;
 	}
 	public static Map<String, Object> parsepostparams(FullHttpRequest request) {
 	    HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(new DefaultHttpDataFactory(false), request);
