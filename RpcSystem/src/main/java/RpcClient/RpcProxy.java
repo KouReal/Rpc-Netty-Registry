@@ -2,6 +2,7 @@ package RpcClient;
 
 import RegistryClient.RegistryClient;
 import asyncutils.ResultFuture;
+import asyncutils.RpcFuture;
 import exceptionutils.RpcErrorException;
 import protocolutils.Header;
 import protocolutils.LenPreMsg;
@@ -47,21 +48,17 @@ public class RpcProxy {
      * @return
      * @throws Exception
      */
-    public ResultFuture<RpcResponse> call(RpcRequest rpcRequest)throws RpcErrorException{
+    public void call(LenPreMsg msg,ResultFuture<?> resultFuture)throws RpcErrorException{
     	
-    	String servicename = rpcRequest.getServicename();
+    	String servicename = ((RpcRequest)(msg.getBody())).getServicename();
     	
         
         String serviceAddress = findServiceAddress(servicename);
         //调用异步方法
-        ResultFuture<RpcResponse> future = null;
         RpcClient client=null;
         // 创建 RPC 客户端对象并发送 RPC 请求
         client = this.getRpcClient(servicename, serviceAddress);
-        LenPreMsg msg = LenPreMsg.buildsimplemsg(Header.rpc_request, rpcRequest);
-        future = new ResultFuture<>(msg.getMsgid());
-        client.invokeWithFuture(msg, future);
-        return future;
+        client.invokeWithFuture(msg, resultFuture);
     }
 
 

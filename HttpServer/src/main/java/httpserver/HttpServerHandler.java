@@ -20,20 +20,16 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.DefaultCookie;
 import protocolutils.RpcRequest;
+import springutils.SpringContextStatic;
 
 @ChannelHandler.Sharable
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+	
 	public static final Logger LOGGER = LoggerFactory.getLogger(HttpServerHandler.class);
-
 	
-    private static ExecutorService threadPool = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 2,
-            Runtime.getRuntime().availableProcessors() * 2, 60L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(1000), new NamedThreadFactory("httpserver-pool", false)); ;
+    private HttpTask httpTask = (HttpTask)SpringContextStatic.getBean("httpTask");
 
-
-
-	
-	@Override
+    @Override
 	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg){
 		LOGGER.info("get fullhttprequest\n :{}",msg);
 		String ssotid = HttpMessageUtil.checkssoredirect(msg);
@@ -49,7 +45,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 				try {
 					RpcRequest rpcRequest = HttpMessageUtil.buildrpcrequest(msg);
 					LOGGER.info("build rpcrequest:{}",rpcRequest);
-					threadPool.execute(new HttpTask(ctx, rpcRequest));
+					httpTask.handlehttprequest(rpcRequest, ctx);
 //					threadPool.execute(new microtask(ctx, rpcRequest, "http://127.0.0.1:8081"+msg.uri()));
 				} catch (ParseRequestException e) {
 					FullHttpResponse response = HttpMessageUtil.buildhttpresponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST, e.getMessage(), null);

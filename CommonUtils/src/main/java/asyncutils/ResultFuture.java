@@ -1,6 +1,7 @@
 package asyncutils;
 
 
+import java.util.Date;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
@@ -24,6 +25,9 @@ public class ResultFuture<T> implements Future<T> {
      */
     private volatile boolean done = false;
     private volatile boolean cancelled = false;
+    
+    //创建时间, date+MAX_WAIT_MS是最晚销毁日期
+    private Date date;
 
     private Thread waitthread;
     private ReentrantReadWriteLock rwlock = new ReentrantReadWriteLock();
@@ -38,6 +42,7 @@ public class ResultFuture<T> implements Future<T> {
     public ResultFuture(){}
     
     public ResultFuture(String futureid) {
+    	this.date = new Date();
     	this.futureid = futureid;
     }
     @Override
@@ -91,9 +96,9 @@ public class ResultFuture<T> implements Future<T> {
     }
 
     /**
-     * RpcFuture获得RpcResponse后调用此方法
+     * ResultFuture获得LenPreMsg后调用此方法
      *
-     * @param rpcResponse
+     * @param result
      */
     public void done(Object result) {
         this.result = result;
@@ -112,6 +117,14 @@ public class ResultFuture<T> implements Future<T> {
 	public String toString() {
 		return "ResultFuture [done=" + done + ", cancelled=" + cancelled + ", waitthread="
 				+ waitthread + ", rwlock=" + rwlock + ", result=" + result + ", futureid=" + futureid + "]";
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
     

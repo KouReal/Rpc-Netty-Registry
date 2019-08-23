@@ -1,61 +1,65 @@
 package httpserver;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.activation.MailcapCommandMap;
+import javax.annotation.PostConstruct;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
 import com.alibaba.fastjson.JSONObject;
 
 import RpcClient.RpcProxy;
 import asyncutils.ResultFuture;
+import asyncutils.RpcFuture;
 import exceptionutils.RpcErrorException;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
+import protocolutils.Header;
+import protocolutils.LenPreMsg;
+import protocolutils.NormalConfig;
 import protocolutils.RpcRequest;
 import protocolutils.RpcResponse;
 import springutils.SpringContextStatic;
 
-public class HttpTask implements Runnable{
+@Component("httpTask")
+@DependsOn(value={"normalConfig","springContextStatic","rpcProxy"})
+public class HttpTask{
 
 	private Logger logger = LoggerFactory.getLogger(HttpTask.class);
-    private ChannelHandlerContext ctx;
-    private RpcRequest rpcRequest;
-    private ResultFuture<RpcResponse> future = null;
-    
-    
-    private RpcProxy rpcProxy = null;
-    
-    
+	private ConcurrentHashMap<String, ChannelHandlerContext> ctxmap = new ConcurrentHashMap<>();
+	@Autowired
+    private RpcProxy rpcProxy;
 
-    public HttpTask(ChannelHandlerContext ctx, RpcRequest request) {
-        this.ctx = ctx;
-        this.rpcRequest = request;
-        this.rpcProxy = (RpcProxy) SpringContextStatic.getBean("rpcProxy");
-    }
-
-	@Override
-	public void run() {
+	public void handlehttprequest(RpcRequest rpcRequest, ChannelHandlerContext ctx) {
 		// TODO Auto-generated method stub
 		try {
 			logger.info("HttpTask发送rpcrequest:{}",rpcRequest);
-			future = rpcProxy.call(rpcRequest);
+			LenPreMsg msg = LenPreMsg.buildsimplemsg(Header.rpc_request, rpcRequest);
+			ctxmap.put(msg.getMsgid(), ctx);
+			RpcFuture future = new RpcFuture(msg.getMsgid(), this::handleresponse);
+			rpcProxy.call(msg,future);
 		} catch (RpcErrorException e) {
 			// TODO Auto-generated catch block
 			logger.info("HttpTask调用RpcProxy出现错误:{}",e.getMessage());
 			e.printStackTrace();
 		}
-		RpcResponse rpcResponse = future.get();
-		logger.info("HttpTask接收到rpcresponse:{}",rpcResponse);
-		if(rpcResponse==null){
-			logger.error("httptask 调用服务超时");
-		}
-		
-		handleresponse(rpcResponse);
 	}
-	public void handleresponse(RpcResponse rpcResponse){
-		if(rpcResponse==null){
+	public void handleresponse(String futureid, Object result){
+		RpcResponse rpcResponse = (RpcResponse)result;
+		ChannelHandlerContext ctx = ctxmap.get(futureid);
+		if(ctx==null || rpcResponse==null) {
+			logger.error("对于futureid:{},它对应的ctx为空,或rpcresponse为空",futureid);
 			FullHttpResponse httpResponse = HttpMessageUtil.buildhttpresponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, "调用服务超时", null);
 			ctx.writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE);
 			return ;

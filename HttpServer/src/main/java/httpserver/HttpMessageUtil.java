@@ -41,9 +41,6 @@ public class HttpMessageUtil {
 	
 	
 	public static RpcRequest buildrpcrequest(FullHttpRequest msg) throws ParseRequestException{
-
-		
-		
 		HttpHeaders headers = msg.headers();
 		LOGGER.info("headers : {}",headers);
 		String cookie = headers.get("Cookie");

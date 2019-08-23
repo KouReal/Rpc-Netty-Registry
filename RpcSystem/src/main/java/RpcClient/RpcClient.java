@@ -59,6 +59,9 @@ public class RpcClient {
         RpcClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelitst));
         ChannelFuture future = bootstrap.connect(targetIP,targetPort);
         connection.bind(future.channel());
+        EventLoop eventLoop = future.channel().eventLoop();
+        LOGGER.info("client startup: eventloop:{}",eventLoop);
+        FutureCache.checkoldfuture(eventLoop);
 		future.awaitUninterruptibly();
 		try {
 			future.sync();

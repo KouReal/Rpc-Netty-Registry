@@ -47,6 +47,12 @@
       "defaultValue": 0
     },
     {
+      "name": "rpcconfig.dataconfig.uniformconfig.show-heart-beat",
+      "type": "java.lang.Boolean",
+      "sourceType": "configutils.Uniformconfig",
+      "defaultValue": false
+    },
+    {
       "name": "rpcconfig.dataconfig.uniformconfig.token-life",
       "type": "java.lang.Integer",
       "sourceType": "configutils.Uniformconfig",
