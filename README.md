@@ -1,6 +1,7 @@
 # Rpc-Netty-Registry
 20190823
 rpc系统修改记录
+博客图文：https://www.cnblogs.com/CreatorKou/p/11402277.html
 
 将httpserver模块的httptask去掉，直接在httpserverhandler调用rpcproxy的call的rpcclient的invokewithfuture的ctx的writeandflush，，这一系列调用过程都是不会阻塞的，除了第一次调用某个服务创建rpcclient是有阻塞cpu的，之后就全在线程内执行，不参与io网络传输。
 为什么要去掉httptask，因为httptask是线程，意味着每次从httpserver接受到一个请求，都会创建一个httptask线程，而这个httptask线程会根据future使自己waitting，parknonos，而线程数量不能创建的太多，尤其不能和请求数量正比例增长，因为线程的来回切换会得不偿失，但是如果用线程池来对付请求，也不行，因为线程池数量有限，并且在线程池的线程里等待网络io必然会耗费时间，这和传统bio问题是一样的，这个线程池也就无法满足高并发请求，总之，高并发不意味着线程必须多，反而是需要线程的充分利用，追求并行而不是并发，所以是和实际物理cpu并行能力来决定的，在双核cpu，一般双核可以支持并行4线程，所以netty的workergroup默认线程数是4，虽然只有这4个线程，但是如果能做到这4个线程充分并行利用，不阻塞不等待网络读写io，就可以达到请求量的最大效果。
