@@ -119,6 +119,7 @@
 		<module>HttpServer</module>
 		<module>RpcSystem</module>
 		<module>CustomerService</module>
+		<module>CommonUtils</module>
 		<module>LoginAuthService</module>
 		<module>RegistryCenter</module>
 		
