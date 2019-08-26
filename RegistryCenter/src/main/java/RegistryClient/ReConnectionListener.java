@@ -5,10 +5,6 @@ import io.netty.channel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author jsj
- * @date 2018-10-24
- */
 public class ReConnectionListener implements ChannelFutureListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReConnectionListener.class);

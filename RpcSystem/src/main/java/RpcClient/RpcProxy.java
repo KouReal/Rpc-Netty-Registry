@@ -2,13 +2,11 @@ package RpcClient;
 
 import RegistryClient.RegistryClient;
 import asyncutils.ResultFuture;
-import asyncutils.RpcFuture;
 import exceptionutils.RpcErrorException;
 import protocolutils.Header;
 import protocolutils.LenPreMsg;
 import protocolutils.RegDiscover;
 import protocolutils.RpcRequest;
-import protocolutils.RpcResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +37,6 @@ public class RpcProxy {
     @Autowired
     private RegistryClient registryClient; 
  
-    /**
-     * 异步调用
-     *
-     * @param interfaceClass
-     * @param method
-     * @param parameters
-     * @return
-     * @throws Exception
-     */
     public void call(LenPreMsg msg,ResultFuture<?> resultFuture)throws RpcErrorException{
     	
     	String servicename = ((RpcRequest)(msg.getBody())).getServicename();
