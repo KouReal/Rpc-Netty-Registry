@@ -121,7 +121,7 @@
 		<module>CustomerService</module>
 		<module>LoginAuthService</module>
 		<module>RegistryCenter</module>
-		<module>Test_RpcSystem</module>
+		
 		<module>AccountService</module>
 		<module>TradeinfoService</module>
 	</modules>
