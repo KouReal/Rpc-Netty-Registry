@@ -42,7 +42,7 @@ public class ServiceProxy implements InvocationHandler{
 	@PostConstruct
 	public void init(){
 		
-		 Map<String, Object> objmap = sctx.getApplicationContext().getBeansWithAnnotation(MyService.class);
+		Map<String, Object> objmap = sctx.getApplicationContext().getBeansWithAnnotation(MyService.class);
 		Object serviceBean = null;
 		MyService myService;
 		String serviceName;
@@ -104,7 +104,7 @@ public class ServiceProxy implements InvocationHandler{
 				return onauthfail.invoke(target.get());
 			}
 		}
-		logger.info("annotation is null,Thread:{}",Thread.currentThread());
+		logger.info("the annotation is null,Thread:{}",Thread.currentThread());
 		return method.invoke(target.get(), args);
 	}
 	
