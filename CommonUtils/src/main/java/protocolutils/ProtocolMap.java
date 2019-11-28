@@ -19,7 +19,7 @@ public class ProtocolMap {
 	private static Map<String, Header> namemap = new HashMap<>();
 	private static Map<Header, Class<?>> clzmap = new HashMap<>();
 	
-	private static void setmap() throws ProtocolException{
+	public static void setmap() throws ProtocolException{
 		for (Header header : Header.values()) {
 			idmap.put(header.getId(), header);
 			namemap.put(header.name(), header);
@@ -40,15 +40,15 @@ public class ProtocolMap {
 		}
 	}
 	public static Header getheader(Integer id) throws ProtocolException{
-		if(idmap.isEmpty()){
-			setmap();
-		}
+//		if(idmap.isEmpty()){
+//			setmap();
+//		}
 		return idmap.get(id);
 	}
 	public static Class<?> getclass(Header header) throws ProtocolException{
-		if(clzmap.isEmpty()){
-			setmap();
-		}
+//		if(clzmap.isEmpty()){
+//			setmap();
+//		}
 		return clzmap.get(header);
 	}
 }

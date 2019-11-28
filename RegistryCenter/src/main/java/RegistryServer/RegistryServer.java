@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import RegistryParamConfigUtil.ParamConfig;
 import RegistryThreadUtil.NamedThreadFactory;
+import exceptionutils.ProtocolException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -23,6 +24,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import protocolutils.Header;
+import protocolutils.ProtocolMap;
 
 import static java.util.Arrays.asList;
 
@@ -59,9 +61,11 @@ public class RegistryServer {
     private static List<Header> protocol_whitelist = asList(Header.heart_beat,Header.reg_addservice,Header.reg_discover,Header.reg_tokenconfig);
     /**
      * 启动 Netty 服务器服务端
+     * @throws ProtocolException 
      */
     @PostConstruct
-    private void doRunServer() {
+    private void doRunServer() throws ProtocolException {
+    	ProtocolMap.setmap();
             try {
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = initServerBootstrap(bossGroup, workerGroup);

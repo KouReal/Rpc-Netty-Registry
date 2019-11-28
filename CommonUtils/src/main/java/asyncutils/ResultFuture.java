@@ -38,6 +38,10 @@ public class ResultFuture<T> implements Future<T> {
     private Object result;
 
     private String futureid;
+    
+    public void setFutureid(String id) {
+    	this.futureid = id;
+    }
 
     public ResultFuture(){}
     

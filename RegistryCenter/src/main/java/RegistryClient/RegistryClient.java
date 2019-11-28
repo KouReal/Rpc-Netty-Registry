@@ -14,6 +14,7 @@ import RegistryParamConfigUtil.ParamConfig;
 import RegistryThreadUtil.NamedThreadFactory;
 import asyncutils.FutureCache;
 import asyncutils.ResultFuture;
+import exceptionutils.ProtocolException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -23,6 +24,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import protocolutils.Header;
 import protocolutils.LenPreMsg;
+import protocolutils.ProtocolMap;
 import springutils.SpringContextStatic;
 import static java.util.Arrays.asList;
 
@@ -65,8 +67,8 @@ public class RegistryClient {
 
 
     @PostConstruct
-    private void init() {
-    	
+    private void init() throws ProtocolException {
+    	ProtocolMap.setmap();
     	LOGGER.info("SpringContextStatic：{}",SpringContextStatic.getApplicationContext());
         connection = new Connection(paramConfig.getServerip(), paramConfig.getServerport(), bootstrap);
         ReConnectionListener reConnectionListener = new ReConnectionListener(connection);

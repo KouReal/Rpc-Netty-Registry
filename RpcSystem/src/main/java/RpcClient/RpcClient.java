@@ -9,9 +9,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import protocolutils.Header;
 import protocolutils.LenPreMsg;
+import protocolutils.NormalConfig;
 import rpcutils.NamedThreadFactory;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,26 +39,41 @@ public class RpcClient {
     /**
      * 配置客户端 NIO 线程组
      */
-    private static EventLoopGroup group = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new NamedThreadFactory("Rpc-netty-client", false));
+    private  EventLoopGroup group = new NioEventLoopGroup(Runtime.getRuntime().availableProcessors() * 2, new NamedThreadFactory("Rpc-netty-client", false));
     /**
      * 创建并初始化 Netty 客户端 Bootstrap 对象
      */
-    private static Bootstrap bootstrap = new Bootstrap().group(group).channel(NioSocketChannel.class)
+    private  Bootstrap bootstrap = new Bootstrap().group(group).channel(NioSocketChannel.class)
             //禁用nagle算法
             .option(ChannelOption.TCP_NODELAY, true);
     private static List<Header> protocol_whitelitst = asList(Header.heart_beat,Header.rpc_response);
     
 
     public RpcClient(String targetIP, int targetPort) {
+    	bootstrap = new Bootstrap().group(group).channel(NioSocketChannel.class);
+
+
         this.targetIP = targetIP;
         this.targetPort = targetPort;
-        this.init();
+        this.init(null);
+    }
+    
+    public RpcClient(String targetIP, int targetPort, NormalConfig normalConfig) {
+    	bootstrap = new Bootstrap().group(group).channel(NioSocketChannel.class);
+    	
+        this.targetIP = targetIP;
+        this.targetPort = targetPort;
+        this.init(normalConfig);
     }
 
-    private void init() {
-        connection = new Connection(targetIP, targetPort, bootstrap);
+    private void init(NormalConfig normalConfig) {
+    	if(normalConfig==null) {
+    		connection = new Connection(targetIP, targetPort, bootstrap);
+    	}else {
+    		connection = new Connection(targetIP, targetPort, bootstrap,normalConfig);
+    	}
         ReConnectionListener reConnectionListener = new ReConnectionListener(connection);
-        RpcClient.bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelitst));
+        bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelitst));
         ChannelFuture future = bootstrap.connect(targetIP,targetPort);
         connection.bind(future.channel());
         EventLoop eventLoop = future.channel().eventLoop();
@@ -69,6 +86,23 @@ public class RpcClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+    }
+    
+    public void Stop() {
+    	LOGGER.info("正在关闭RpcClient....");
+    	EventLoop eventLoop = getChannel().eventLoop();
+    	eventLoop.execute(()->{
+    		FutureCache.removeAll();
+        	FutureCache.closescheduler();
+    		LOGGER.info("已经关闭FutureCache的scheduler...");
+    	});
+    	eventLoop.shutdownGracefully();
+    	
+    	if(group != null && !group.isShutdown()) {
+    		group.shutdownGracefully();
+    		group = null;
+    	}
+    	LOGGER.info("RpcClient已关闭....");
     }
 
     /**
@@ -87,6 +121,9 @@ public class RpcClient {
         //写请求并直接返回
         LOGGER.info("rpcclient invokewithfuture lenpremsg:{},with future:{}", msg,future);
         channel.writeAndFlush(msg);
+//        channel.eventLoop().execute(()->{
+//        	channel.writeAndFlush(msg);
+//        });
     }
 
     public Channel getChannel(){

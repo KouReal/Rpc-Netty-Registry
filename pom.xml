@@ -108,8 +108,19 @@
 					<target>1.8</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
-			</plugin>
-
+			</plugin>  
+			<!-- <plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.1.8.RELEASE</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin> -->
 		</plugins>
 	</build>
 
@@ -126,5 +137,7 @@
 		<!-- <module>Test_RpcSystem</module> -->
 		<module>AccountService</module>
 		<module>TradeinfoService</module>
+		<module>PerformanceTestService</module>
+		<module>JmeterPerformanceTest</module>
 	</modules>
 </project>

@@ -62,7 +62,7 @@ public class LenPreMsgDecoder extends ByteToMessageDecoder{
 		Class<?> protocol_cls = ProtocolMap.getclass(header);
 //		logger.info("start serialize,cls:{}",protocol_cls);
 		Object obj = (Object) SerializeUtil.deserializeWithProtostuff(data, protocol_cls);
-//		logger.info("decoder get obj:{}",obj);
+		logger.info("decoder get obj:{}",obj);
 		out.add(new LenPreMsg(header,msgid, len, obj));
 		
 		

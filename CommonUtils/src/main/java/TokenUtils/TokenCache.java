@@ -23,13 +23,14 @@ import springutils.SpringContextStatic;
 import protocolutils.NormalConfig;
 
 
-@Component
+@Component("tokenCache")
 @DependsOn("normalConfig")
 public class TokenCache {
 	//可以转移到springboot的configurations类中
 		public static final Logger LOGGER = LoggerFactory.getLogger(TokenCache.class);
 		public ReentrantReadWriteLock  rwlock = new ReentrantReadWriteLock ();
 		public static int TOKEN_LIFE = 10000;
+		public static Timer timer;
 		
 		
 //		public static List<Token> tokencache = new ArrayList<>();
@@ -38,7 +39,7 @@ public class TokenCache {
 		public void init(){	
 			this.rwlock = new ReentrantReadWriteLock();
 			TOKEN_LIFE = ((NormalConfig)SpringContextStatic.getBean("normalConfig")).getUniformconfig().getTokenLife();
-			Timer timer = new Timer();
+			timer = new Timer();
 			timer.schedule(new TimerTask() {
 				@Override
 				public void run() {

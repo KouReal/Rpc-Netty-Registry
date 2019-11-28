@@ -131,6 +131,7 @@ public class HttpMessageUtil {
 			if(cookie!=null){
 				response.headers().set("Set-Cookie",ClientCookieEncoder.STRICT.encode(cookie));
 			}
+			response.headers().set("Content-Type", "charset=UTF-8");
 			if(message==null)return response;
 			ByteBuf buffer = Unpooled.copiedBuffer(message, CharsetUtil.UTF_8);
 			response.content().writeBytes(buffer);

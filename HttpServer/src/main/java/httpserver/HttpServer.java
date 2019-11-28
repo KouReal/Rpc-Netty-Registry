@@ -7,14 +7,17 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import configutils.ServiceAddr;
+import exceptionutils.ProtocolException;
 import exceptionutils.RpcErrorException;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import protocolutils.NormalConfig;
+import protocolutils.ProtocolMap;
 import rpcutils.NamedThreadFactory;
 import springutils.SpringContextStatic;
 
@@ -49,18 +52,23 @@ public class HttpServer{
 		} catch (RpcErrorException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (ProtocolException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
     /**
      * 启动 Netty RPC服务器服务端
      * @throws RpcErrorException 
+     * @throws ProtocolException 
      */
 //    @PostConstruct
-    private void doRunServer() throws RpcErrorException {
+    private void doRunServer() throws RpcErrorException, ProtocolException {
     	LOGGER.info("starting httpserver");
+    	ProtocolMap.setmap();
        ServiceAddr serviceAddr = normalConfig.getServiceAddr();
        int port = serviceAddr.getPort();
-       HttpMessageUtil.httpaddr = "127.0.0.1"+":"+port;
+       HttpMessageUtil.httpaddr = "localhost"+":"+port;
            try {
                 //创建并初始化 Netty 服务端辅助启动对象 ServerBootstrap
                 ServerBootstrap serverBootstrap = HttpServer.this.initServerBootstrap(bossGroup, workerGroup);
@@ -93,6 +101,7 @@ public class HttpServer{
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childOption(ChannelOption.SO_KEEPALIVE, true)
                 .childHandler(new HttpServerInitializer());
+        
     }
 
 

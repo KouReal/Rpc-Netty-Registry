@@ -30,7 +30,10 @@ public class ClientChannelInitializer extends ChannelInitializer<SocketChannel> 
     public ClientChannelInitializer(ReConnectionListener reConnectionListener,List<Header> whitelist) {
     	this.messageFilter = new MessageFilter(whitelist);
         this.connectionWatchDog = new ConnectionWatchDog(reConnectionListener);
-        this.uniformconfig = ((NormalConfig)SpringContextStatic.getBean("normalConfig")).getUniformconfig();
+        
+        
+        this.uniformconfig = reConnectionListener.getConnection().getUniformconfig();
+//        this.uniformconfig = ((NormalConfig)SpringContextStatic.getBean("normalConfig")).getUniformconfig();
         this.clientHandler = new ClientHandler();
     }
 

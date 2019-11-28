@@ -1,0 +1,54 @@
+spring:
+    profiles:
+        active: test
+registry:
+    serverip: 127.0.0.1
+    serverport: 9090
+rpcconfig:
+    dataconfig:
+        uniformconfig:
+            client-reconnect-try: 20
+            #客户端连接超时时间（单位：毫秒
+            client-connect-timeout: 5000
+            #token最大生命期(单位：毫秒)
+            token-life: 60000
+            client-write-idle: 5000
+            server-read-idle: 10000
+            #展示心跳信息
+            show-heartbeat: false
+        serviceaddrs:
+            #自定义配置的服务数量不确定
+            - name: customer
+              ip: 127.0.0.1
+              port: 8001
+            - name: account
+              ip: 127.0.0.1
+              port: 8002
+            - name: tradeinfo
+              ip: 127.0.0.1
+              port: 8003
+            - name: performancetest
+              ip: 127.0.0.1
+              port: 8004
+            - name: httpserver
+              ip: 127.0.0.1
+              port: 8005
+    ssogroups:
+        - leader-service: customer
+          login-addr: http://127.0.0.1:8005/bank/customer/login
+          visitor-name: httpserver
+          group-members:
+           - account
+           - tradeinfo
+---
+spring:
+    profiles: test
+registry:
+    serverip: 127.0.0.1
+    serverport: 9091
+---
+spring:
+    profiles: dev
+registry:
+    serverip: 127.0.0.1
+    serverport: 9092

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="AccountService" />
+        <module name="CommonUtils" />
+        <module name="CustomerService" />
+        <module name="HttpServer" />
+        <module name="JmeterPerformanceTest" />
+        <module name="LoginAuthService" />
+        <module name="PerformanceTestService" />
+        <module name="RegistryCenter" />
+        <module name="RpcSystem" />
+        <module name="TradeinfoService" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="AccountService" target="1.8" />
+      <module name="CommonUtils" target="1.8" />
+      <module name="CustomerService" target="1.8" />
+      <module name="HttpServer" target="1.8" />
+      <module name="JmeterPerformanceTest" target="1.8" />
+      <module name="LoginAuthService" target="1.8" />
+      <module name="Netty-Rpc-Service-System" target="1.8" />
+      <module name="PerformanceTestService" target="1.8" />
+      <module name="RegistryCenter" target="1.8" />
+      <module name="RpcSystem" target="1.8" />
+      <module name="TradeinfoService" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

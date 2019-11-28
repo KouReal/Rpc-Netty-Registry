@@ -27,7 +27,7 @@ rpcconfig:
             - name: tradeinfo
               ip: 127.0.0.1
               port: 8003
-            - name: testsso
+            - name: performancetest
               ip: 127.0.0.1
               port: 8004
             - name: httpserver

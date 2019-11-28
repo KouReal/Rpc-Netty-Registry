@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +21,11 @@ public class FutureCache {
 
 	public static ThreadLocal<Map<Channel, Map<String, ResultFuture<?>>>> CACHE = new ThreadLocal<>();
 	public static ThreadLocal<Timer> timer = new ThreadLocal<>();
+	// 将scheduler也设置为threadlocal
+	public static ThreadLocal<ScheduledExecutorService> scheduler = new ThreadLocal<>();
+
+	// Executors.newScheduledThreadPool(1);
+//	public static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4); 
 	/**
 	 * 调用之后在eventLoop的CACHE中添加future
 	 *
@@ -38,45 +46,52 @@ public class FutureCache {
 
 		});
 	}
-	
-	public static void checkoldfuture(EventLoop eventLoop){
-    	eventLoop.execute(()->{
-    		Timer t = checktimer();
-    		logger.info("eventloop:{},ThreadLocol->checkoldfuture:{}",eventLoop,t);
-    		t.schedule(new TimerTask() {
+
+	public static void checkoldfuture(EventLoop eventLoop) {
+		logger.info("eventloop:{},checkoldfuture", eventLoop);
+		eventLoop.execute(() -> {
+			logger.info("scheduling checkoldfuture......eventloop:{}", eventLoop);
+			Map<Channel, Map<String, ResultFuture<?>>> cache = checkCache();
+			ScheduledExecutorService schp = Executors.newScheduledThreadPool(1);
+			scheduler.set(schp);
+			schp.scheduleAtFixedRate(new Runnable() {
 				@Override
-				
 				public void run() {
-					
-					eventLoop.execute(()->{
-						logger.info("scheduling......eventloop:{},ThreadLocol->checkoldfuture:{}",eventLoop,t);
-						Map<Channel, Map<String, ResultFuture<?>>> cache = checkCache();
-						for(Map.Entry<Channel, Map<String, ResultFuture<?>>> entry : cache.entrySet() ){
-							if(entry.getKey()!=null){
-								Iterator<Entry<String, ResultFuture<?>>> it = entry.getValue().entrySet().iterator();
-								while(it.hasNext()) {
-									Entry<String, ResultFuture<?>> temp = it.next();
-									Long live = System.currentTimeMillis()-temp.getValue().getDate().getTime();
-									if(live > ResultFuture.MAX_WAIT_MS) {
-										it.remove();
-									}
+					for (Map.Entry<Channel, Map<String, ResultFuture<?>>> entry : cache.entrySet()) {
+						if (entry.getKey() != null) {
+							Iterator<Entry<String, ResultFuture<?>>> it = entry.getValue().entrySet().iterator();
+							while (it.hasNext()) {
+								Entry<String, ResultFuture<?>> temp = it.next();
+								Long live = System.currentTimeMillis() - temp.getValue().getDate().getTime();
+								if (live > ResultFuture.MAX_WAIT_MS) {
+									logger.info("remove old future:{}", temp.getValue());
+									it.remove();
 								}
 							}
 						}
-					});
-					
+					}
 				}
-			}, 0, ResultFuture.MAX_WAIT_MS);
-    	});
-    }
-	public static Timer checktimer(){
-    	Timer t = timer.get();
-        if (t == null) {
-            t = new Timer();
-            timer.set(t);
-        }
-        return t;
-    }
+			}, 0, ResultFuture.MAX_WAIT_MS, TimeUnit.MILLISECONDS);
+
+		});
+
+	}
+	public static void closescheduler() {
+		ScheduledExecutorService schp = scheduler.get();
+		schp.shutdown();
+		while(!schp.isTerminated()) {
+			
+		}
+	}
+
+	public static Timer checktimer() {
+		Timer t = timer.get();
+		if (t == null) {
+			t = new Timer();
+			timer.set(t);
+		}
+		return t;
+	}
 	/**
 	 * 调用异常时清除eventLoop中的future
 	 *

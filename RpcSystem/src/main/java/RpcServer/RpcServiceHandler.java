@@ -24,7 +24,7 @@ public class RpcServiceHandler extends SimpleChannelInboundHandler<LenPreMsg> {
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, LenPreMsg msg) throws Exception {
     	
-        LOGGER.info("rpc服务端收到 msg:{}", msg);
+        LOGGER.info("channel:{},rpc服务端收到 msg:{}",ctx.channel(), msg);
         //交由业务线程池执行
         if(msg.getHeader()==Header.rpc_request){
         	threadPool.execute(new RpcTask(ctx, msg));

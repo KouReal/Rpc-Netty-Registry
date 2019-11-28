@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/AccountService/AccountService.iml" filepath="$PROJECT_DIR$/AccountService/AccountService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CommonUtils/CommonUtils.iml" filepath="$PROJECT_DIR$/CommonUtils/CommonUtils.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CustomerService/CustomerService.iml" filepath="$PROJECT_DIR$/CustomerService/CustomerService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HttpServer/HttpServer.iml" filepath="$PROJECT_DIR$/HttpServer/HttpServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JmeterPerformanceTest/JmeterPerformanceTest.iml" filepath="$PROJECT_DIR$/JmeterPerformanceTest/JmeterPerformanceTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/LoginAuthService/LoginAuthService.iml" filepath="$PROJECT_DIR$/LoginAuthService/LoginAuthService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Netty-Rpc-Service-System.iml" filepath="$PROJECT_DIR$/Netty-Rpc-Service-System.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PerformanceTestService/PerformanceTestService.iml" filepath="$PROJECT_DIR$/PerformanceTestService/PerformanceTestService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RegistryCenter/RegistryCenter.iml" filepath="$PROJECT_DIR$/RegistryCenter/RegistryCenter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RpcSystem/RpcSystem.iml" filepath="$PROJECT_DIR$/RpcSystem/RpcSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TradeinfoService/TradeinfoService.iml" filepath="$PROJECT_DIR$/TradeinfoService/TradeinfoService.iml" />
+    </modules>
+  </component>
+</project>

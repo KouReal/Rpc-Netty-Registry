@@ -48,15 +48,12 @@ public class RpcTask implements Runnable {
 //            RpcMessage msg = new RpcMessage(new Header(1, Header.RPC_RESPONSE), (Object)rpcResponse);
             logger.info("构造lenpremsg:{}",resultmsg);
             ctx.writeAndFlush(resultmsg);
+		/*
+		 * ctx.channel().eventLoop().execute(()->{ ctx.writeAndFlush(resultmsg); });
+		 */
     }
 
-    /**
-     * 根据请求调用已经注册的远程服务
-     *
-     * @param request
-     * @return
-     * @throws Exception
-     */
+
     private RpcResponse handle(RpcRequest request) {
         // 获取服务实例对象
         String serviceName = request.getServicename();
