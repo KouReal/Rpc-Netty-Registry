@@ -75,7 +75,7 @@ public class HttpServer{
                 //绑定对应ip和端口，同步等待成功
                 ChannelFuture future = serverBootstrap.bind(port).sync();
                 LOGGER.info("http server 已启动，端口：{}", port);
-                //等待服务端监听端口关闭
+               //等待服务端监听端口关闭
                 future.channel().closeFuture().sync();
             } catch (InterruptedException i) {
                 LOGGER.error("httpserver 出现异常，端口：{}, cause:", port, i.getMessage());

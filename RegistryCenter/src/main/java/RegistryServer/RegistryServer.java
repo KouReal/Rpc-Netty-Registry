@@ -72,6 +72,8 @@ public class RegistryServer {
                 //绑定对应ip和端口，同步等待成功
                 ChannelFuture future = serverBootstrap.bind(paramConfig.getServerport()).sync();
                 LOGGER.info("regist server 已启动，端口：{}", paramConfig.getServerport());
+                Integer option = future.channel().config().getOption(ChannelOption.SO_LINGER);
+                LOGGER.info("solinger option={}",option);
                 //等待服务端监听端口关闭
                 future.channel().closeFuture().sync();
             } catch (InterruptedException i) {

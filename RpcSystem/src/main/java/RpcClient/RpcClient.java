@@ -76,6 +76,8 @@ public class RpcClient {
         bootstrap.handler(new ClientChannelInitializer(reConnectionListener,protocol_whitelitst));
         ChannelFuture future = bootstrap.connect(targetIP,targetPort);
         connection.bind(future.channel());
+        Integer soLingerOption = future.channel().config().getOption(ChannelOption.SO_LINGER);
+        LOGGER.info("soLingerOption={}",soLingerOption);
         EventLoop eventLoop = future.channel().eventLoop();
         LOGGER.info("client startup: eventloop:{}",eventLoop);
         FutureCache.checkoldfuture(eventLoop);
@@ -105,14 +107,7 @@ public class RpcClient {
     	LOGGER.info("RpcClient已关闭....");
     }
 
-    /**
-     * 异步调用
-     *
-     * @param method
-     * @param parameters
-     * @return
-     * @throws Exception
-     */
+
     public void invokeWithFuture(LenPreMsg msg, ResultFuture<?> future){
         Channel channel = this.getChannel();
         
